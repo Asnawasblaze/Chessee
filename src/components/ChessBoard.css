@@ -1,0 +1,19 @@
+/* The scene's own box, always applied.
+ *
+ * Not optional, and not the caller's job. The renderer sizes its drawing buffer
+ * from this element's measured box — so a bare <div> with no height of its own
+ * collapses, the buffer comes out one pixel tall, and the canvas (which stretches
+ * to 100% either way) shows a one-pixel row smeared over the whole frame. It looks
+ * exactly like a scene that failed to start, which is the worst kind of layout
+ * bug: nothing errors and nothing is drawn.
+ *
+ * So the component fills whatever positioned ancestor it is dropped into by
+ * default, and anything the caller passes as `className` is additive.
+ */
+.chess-board {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}

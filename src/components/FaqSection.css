@@ -1,0 +1,530 @@
+/* ---------------------------------------------------------------------- */
+/* FAQ — dark chapter, two-column reading surface with an accordion         */
+/* ---------------------------------------------------------------------- */
+
+/* Art direction: the same near-black stage, Didone display face and mono label
+   face as pricing and Why, so this reads as the last page of the same document
+   rather than a support article bolted on. The break from pricing is that
+   nothing here is a card — rows are separated by hairlines only, which is the
+   quietest way to list four items and keeps the eye travelling down the column
+   instead of stopping at each box.
+
+   Everything expensive about the section's look is one soft glow behind the
+   list; there is no pin, no scrub and no per-frame work. */
+
+.faq-section {
+  /* Local palette, same reasoning as pricing's: the hero's HUD is tuned
+     against the global tokens, so overriding those here would reach back up
+     the page. */
+  --q-ink: #eef7fb;
+  --q-ink-soft: #a6bdc9;
+  --q-ink-dim: rgba(166, 189, 201, 0.62);
+  --q-copy: #c4d5de;
+  --q-line: rgba(155, 216, 237, 0.16);
+  --q-line-soft: rgba(155, 216, 237, 0.09);
+  --q-accent: #9bd8ed;
+  --q-gutter: clamp(24px, 6vw, 96px);
+
+  position: relative;
+  isolation: isolate;
+  /* Picks up .pricing-tail's flat tone, so there is no join to see. */
+  background: #000106;
+  /* Straddles that join: both sections' heights land on fractional device
+     pixels and the sub-pixel gap renders as a hairline otherwise. */
+  margin-top: -1px;
+  padding: clamp(72px, 13svh, 156px) var(--q-gutter) clamp(64px, 11svh, 132px);
+  overflow: hidden;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Ambient background                                                      */
+/* ---------------------------------------------------------------------- */
+
+.faq-atmosphere {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* One low, wide mass behind the list. Static — the chapter is a reading
+   surface, and a drifting background under text is a distraction, not depth. */
+.faq-glow {
+  position: absolute;
+  left: 62%;
+  top: 34%;
+  width: min(1100px, 92vw);
+  height: min(700px, 76svh);
+  translate: -50% -50%;
+  opacity: 0.5;
+  background: radial-gradient(
+    50% 50% at 50% 50%,
+    rgba(112, 182, 212, 0.14) 0%,
+    rgba(58, 116, 150, 0.07) 42%,
+    rgba(16, 38, 54, 0.03) 70%,
+    transparent 100%
+  );
+}
+
+/* Breaks up the banding a large, low-contrast radial gradient produces on
+   8-bit displays. Same treatment the chapters above use. */
+.faq-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------------------------------------------------------------------- */
+/* Shell                                                                   */
+/* ---------------------------------------------------------------------- */
+
+.faq-inner {
+  position: relative;
+  z-index: 1;
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  display: grid;
+  /* Title rail, then the questions. The rail is narrow on purpose: the answers
+     are the payload and they get the wider measure. */
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  gap: clamp(40px, 6vw, 96px);
+  align-items: start;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Left rail                                                              */
+/* ---------------------------------------------------------------------- */
+
+.faq-head {
+  position: sticky;
+  /* Clears nothing in particular — there is no fixed header — but keeps the
+     title off the very top edge while it is stuck. */
+  top: clamp(48px, 12svh, 120px);
+}
+
+.faq-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--label);
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--q-ink-dim);
+}
+
+.faq-eyebrow i {
+  width: 26px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--q-accent), transparent);
+}
+
+.faq-title {
+  margin: 18px 0 0;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(38px, 4.6vw, 66px);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  color: var(--q-ink);
+}
+
+.faq-title em {
+  display: block;
+  font-style: italic;
+  color: var(--q-accent);
+}
+
+.faq-standfirst {
+  margin: 22px 0 0;
+  max-width: 34ch;
+  font-size: clamp(15px, 1.1vw, 17px);
+  line-height: 1.6;
+  color: var(--q-ink-soft);
+}
+
+/* The escape hatch. Every FAQ needs one visible route out for the question the
+   list does not cover, and putting it beside the title rather than under the
+   last answer means the reader finds it whether or not they read to the end. */
+.faq-ask {
+  margin-top: clamp(28px, 4svh, 44px);
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px 14px 16px;
+  border: 1px solid var(--q-line);
+  border-radius: 12px;
+  background: rgba(155, 216, 237, 0.04);
+  text-decoration: none;
+  color: var(--q-ink);
+  transition:
+    border-color 0.24s ease,
+    background-color 0.24s ease,
+    transform 0.24s ease;
+}
+
+.faq-ask:hover {
+  border-color: rgba(155, 216, 237, 0.38);
+  background: rgba(155, 216, 237, 0.08);
+  transform: translateY(-2px);
+}
+
+.faq-ask-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border-radius: 9px;
+  background: rgba(155, 216, 237, 0.1);
+  color: var(--q-accent);
+}
+
+.faq-ask-icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.faq-ask-copy {
+  display: grid;
+  gap: 3px;
+}
+
+.faq-ask-copy b {
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+}
+
+.faq-ask-copy i {
+  font-style: normal;
+  font-family: var(--label);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--q-ink-dim);
+}
+
+/* ---------------------------------------------------------------------- */
+/* The accordion                                                          */
+/* ---------------------------------------------------------------------- */
+
+.faq-list {
+  /* A rule above the first row and below the last, with each row carrying its
+     own bottom hairline, so the list reads as a ruled table rather than four
+     detached strips. */
+  border-top: 1px solid var(--q-line-soft);
+}
+
+.faq-item {
+  position: relative;
+  border-bottom: 1px solid var(--q-line-soft);
+}
+
+/* Marks the open row down its leading edge. A left rule rather than a filled
+   background: it says "this one" without changing the surface the answer is
+   being read against. */
+.faq-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--q-accent);
+  opacity: 0;
+  scale: 1 0.3;
+  transform-origin: 50% 50%;
+  transition:
+    opacity 0.3s ease,
+    scale 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.faq-item.is-open::before {
+  opacity: 0.85;
+  scale: 1 1;
+}
+
+.faq-q {
+  margin: 0;
+  font: inherit;
+}
+
+/* The row itself. A real button, full width, so the whole row is the target —
+   a 40-character question with a 24px chevron as the only hit area is the most
+   common way an accordion gets this wrong. */
+.faq-trigger {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "topic mark"
+    "question mark";
+  align-items: center;
+  column-gap: 20px;
+  row-gap: 8px;
+  width: 100%;
+  /* Comfortably past the 44px minimum target at every width. */
+  padding: clamp(22px, 2.6svh, 30px) clamp(14px, 1.6vw, 22px);
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  text-align: left;
+  color: var(--q-ink);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.24s ease;
+}
+
+.faq-trigger:hover {
+  background: rgba(155, 216, 237, 0.045);
+}
+
+/* Keyboard focus gets a real ring, and only keyboard focus — a mouse user who
+   just clicked a row does not need one. Offset inward so it is not clipped by
+   the row's own hairline. */
+.faq-trigger:focus-visible {
+  outline: 2px solid var(--q-accent);
+  outline-offset: -3px;
+}
+
+.faq-topic {
+  grid-area: topic;
+  font-family: var(--label);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--q-ink-dim);
+  transition: color 0.24s ease;
+}
+
+.faq-item.is-open .faq-topic {
+  color: var(--q-accent);
+}
+
+.faq-question {
+  grid-area: question;
+  font-family: var(--heading);
+  font-weight: 400;
+  font-size: clamp(17px, 1.42vw, 21px);
+  line-height: 1.32;
+  letter-spacing: -0.005em;
+  color: var(--q-ink);
+  /* Keeps the question off the toggle at the widest measure. */
+  max-width: 46ch;
+}
+
+/* Plus → minus. Two bars in a bordered well; the vertical one rotates out and
+   the well turns accent, so the state change is carried by shape *and* colour
+   rather than colour alone. */
+.faq-mark {
+  grid-area: mark;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border: 1px solid var(--q-line);
+  border-radius: 50%;
+  transition:
+    border-color 0.28s ease,
+    background-color 0.28s ease,
+    rotate 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.faq-mark i {
+  position: absolute;
+  width: 13px;
+  height: 1.5px;
+  border-radius: 2px;
+  background: var(--q-ink-soft);
+  transition:
+    background-color 0.28s ease,
+    scale 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.faq-mark i:last-child {
+  rotate: 90deg;
+}
+
+.faq-trigger:hover .faq-mark {
+  border-color: rgba(155, 216, 237, 0.4);
+}
+
+.faq-item.is-open .faq-mark {
+  rotate: 180deg;
+  border-color: rgba(155, 216, 237, 0.45);
+  background: rgba(155, 216, 237, 0.1);
+}
+
+.faq-item.is-open .faq-mark i {
+  background: var(--q-accent);
+}
+
+/* Collapsing the crossbar rather than hiding it keeps the two states on one
+   continuous gesture. */
+.faq-item.is-open .faq-mark i:last-child {
+  scale: 0 1;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Panels                                                                 */
+/* ---------------------------------------------------------------------- */
+
+/* Height is animated by GSAP (see FaqSection.tsx), so this element owns only
+   the clip. No padding here — padding on a height-animated box makes the
+   closed state 0px tall plus the padding, which is the classic accordion
+   flicker; it lives on .faq-answer instead. */
+.faq-panel {
+  overflow: hidden;
+  /* Height and visibility are both written by the tween on mount. The
+     inline styles React never sets are why this has no initial height rule:
+     giving it one here would fight the first gsap.set. */
+  will-change: height;
+}
+
+.faq-answer {
+  padding: 0 clamp(14px, 1.6vw, 22px) clamp(26px, 3svh, 34px);
+  max-width: 62ch;
+}
+
+.faq-answer p {
+  font-size: clamp(14.5px, 1.05vw, 16.5px);
+  line-height: 1.68;
+  color: var(--q-copy);
+}
+
+.faq-points {
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.faq-points li {
+  position: relative;
+  padding-left: 22px;
+  font-size: clamp(14px, 1vw, 15.5px);
+  line-height: 1.5;
+  color: var(--q-copy);
+}
+
+/* A small accent tick, drawn with a border rather than a glyph so it sits on
+   the text baseline at every clamp step. */
+.faq-points li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.55em;
+  width: 8px;
+  height: 4px;
+  border-left: 1.5px solid var(--q-accent);
+  border-bottom: 1.5px solid var(--q-accent);
+  rotate: -45deg;
+}
+
+.faq-answer-tail {
+  margin-top: 14px;
+}
+
+.faq-answer-links {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.faq-answer-links a {
+  display: inline-flex;
+  align-items: center;
+  /* Padding, not just underline: these two are the only actions in the whole
+     chapter, and an inline link inside a paragraph is easy to miss. */
+  padding: 9px 16px;
+  border: 1px solid var(--q-line);
+  border-radius: 999px;
+  font-family: var(--label);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--q-ink);
+  transition:
+    border-color 0.24s ease,
+    background-color 0.24s ease,
+    color 0.24s ease;
+}
+
+.faq-answer-links a:hover {
+  border-color: rgba(155, 216, 237, 0.42);
+  background: rgba(155, 216, 237, 0.08);
+  color: var(--q-accent);
+}
+
+.faq-answer-links a:focus-visible,
+.faq-ask:focus-visible {
+  outline: 2px solid var(--q-accent);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Narrow screens                                                         */
+/* ---------------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .faq-inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(32px, 5svh, 48px);
+  }
+
+  /* Sticky is worth nothing once the rail is above the list rather than beside
+     it — it would just pin the title over the questions. */
+  .faq-head {
+    position: static;
+  }
+
+  .faq-standfirst,
+  .faq-question {
+    max-width: none;
+  }
+
+  .faq-glow {
+    left: 50%;
+    opacity: 0.36;
+  }
+}
+
+@media (max-width: 560px) {
+  .faq-ask {
+    width: 100%;
+  }
+
+  .faq-mark {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Reduced motion                                                         */
+/* ---------------------------------------------------------------------- */
+
+/* The panel tween is already skipped in JS for this mode; this covers the CSS
+   half — the marker rule, the toggle rotation and the hover lift. State stays
+   fully legible because none of it was carried by movement alone. */
+@media (prefers-reduced-motion: reduce) {
+  .faq-item::before,
+  .faq-mark,
+  .faq-mark i,
+  .faq-trigger,
+  .faq-ask,
+  .faq-answer-links a {
+    transition: none;
+  }
+
+  .faq-ask:hover {
+    transform: none;
+  }
+}

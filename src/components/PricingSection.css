@@ -1,0 +1,1578 @@
+/* ---------------------------------------------------------------------- */
+/* Pricing — four plans read against a travelling sky                      */
+/* ---------------------------------------------------------------------- */
+
+/* Art direction: picks the Why chapter up exactly where it leaves off. Same
+   sky, same base tone, same Didone display face for the prices, same
+   monospaced label face for kickers and spec values. The one deliberate break
+   is that this chapter *does* use cards — Why builds its depth from layering
+   instead of panels, but a price list is a comparison, and a comparison needs
+   discrete objects the eye can put side by side.
+ *
+ * ── What changed, and why the reveal is gone ─────────────────────────────
+ * This chapter used to be a four-act pinned performance: the hand climbed in
+ * from under the frame, squared up, fanned across it and turned over card by
+ * card, with the terms printed on the *back* of what the reader was looking at
+ * for the first two and a half screens of it. Three and a half screens of pin
+ * to arrive at a table that could have been read on the first frame.
+ *
+ * It is gone. The cards are one panel each, laid out as an ordinary grid, face
+ * up, readable at every scroll position and in every layout. Nothing about the
+ * price table is gated on a scroll position any more.
+ *
+ * ── And what changed again, after that ───────────────────────────────────
+ * The panel that replaced the flip was still a playing card: a 296px crest
+ * carrying a 96px chess glyph, an engraved medallion and a mirrored corner index,
+ * stacked over a second face that held the terms. 772px of card, of which the
+ * top 38% carried a glyph and a word — which put the price in the middle of the
+ * object and the button below the fold of any laptop. A price table whose call to
+ * action is off screen is a price table that cannot be acted on.
+ *
+ * One surface now, 603px, read in the order a reader decides in: what tier this
+ * is → what it costs → what it is for → the button → what you get. The chess
+ * identity survives as a 40px stamped chip beside the name, because the tiers are
+ * named after pieces and that has to be legible; what does not survive is the
+ * medallion, the foil ring, the mirrored index, the breathing texture, the
+ * two-axis lean under the pointer and the sibling dimming that took the whole
+ * table to 46% opacity whenever the pointer crossed a gutter. Ornament that cost
+ * the reader the comparison it was decorating.
+ *
+ * Everything in the card is on a reserved height, so all four names, prices,
+ * descriptions and buttons land on one shared line across the row. That is the
+ * only reason to lay a price table out as a grid rather than a list.
+ *
+ * What carries the chapter instead is the *background*: one viewport-tall
+ * backdrop, held in the frame by a pin for the length of the section, whose sky
+ * travels and whose light changes as the reader scrolls — arrival, then the
+ * chapter's own light rising under the cards, then a close that resolves the
+ * frame back to the base tone the run-out band opens on. Three acts, all of
+ * them in the background, none of them holding up the copy. See the background
+ * timeline in PricingSection.tsx.
+ *
+ * Depth still comes from the stage rather than from drop shadows: a pool of
+ * table light under the row, a receding rank grid on the board's 8-cell rhythm,
+ * two drifting nebula masses, grain and a vignette. */
+
+.pricing-section {
+  /* Local palette, same reasoning as the Why chapter's: the hero's HUD is
+     tuned against the global tokens, so overriding them here would reach back
+     up the page. */
+  --p-ink: #eef7fb;
+  --p-ink-soft: #a6bdc9;
+  --p-ink-dim: rgba(166, 189, 201, 0.6);
+  /* Body copy inside a card sits brighter than copy on the open stage. The
+     card's own surface is a lighter value than the stage, so the stage's ink
+     loses contrast against it — and the feature lists are the one thing on this
+     page a reader has to compare line by line. */
+  --p-copy: #c4d5de;
+  --p-accent: #9bd8ed;
+  --p-gutter: clamp(24px, 6vw, 96px);
+
+  /* ── The space palette ────────────────────────────────────────────────
+     The chapter opens on the far side of the hole the Why chapter's pawn falls
+     into, so its surfaces are lit by deep space rather than by an unlit room.
+     The sky's own tones live in SpaceField.css, which both chapters share;
+     these are here because they are what the *cards* and the background washes
+     borrow. Kept as space-separated channels so every consumer can mix its own
+     tint with rgb(var(--x) / a). */
+  --p-neb-violet: 108 92 214;
+  --p-neb-teal: 42 126 164;
+  /* --space-base as channels, because the closing wash needs it with an alpha
+     and the token is a hex. These two must stay in step: the close resolves the
+     frame to this value, and .pricing-tail's first stop is var(--space-base). */
+  --p-base-rgb: 4 9 26;
+
+  /* Corner radius of a real card of this size. Sharper than a UI panel, softer
+     than a cut edge. */
+  --card-radius: 14px;
+
+  /* The feature list's tick, as a mask so it can be tinted per tier from
+     --tier without shipping one inline SVG per list item. Stroke-based and
+     round-joined, to match the two chevrons already on the page (the scroll cue
+     and the CTA arrow) — one stroke weight and one join style across the
+     section's whole icon layer. */
+  --p-tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.8 10 17.8 19.2 6.6'/%3E%3C/svg%3E");
+
+  position: relative;
+  /* The sky's flat base, not the page's near-black. This section is on the far
+     side of the Why chapter's dive, and that chapter's last row is painted in
+     the same value — so the two are one surface and the join cannot show.
+     Declared in SpaceField.css because four surfaces across two components have
+     to agree about it. */
+  background: var(--space-base);
+  /* Straddles the join with the section above. Both sections' heights land on
+     fractional device pixels and the sub-pixel gap rendered as a hairline ruled
+     across an otherwise seamless handover.
+   *
+   * A hairline rather than a real overlap, and that is still not a conservative
+   * choice but the only available one: the Why chapter is pinned until one
+   * viewport *after* this section's top edge would first reach the fold, so
+   * anything more than a hairline slides this opaque sky up over a frame that is
+   * still frozen — a page-sized sheet dealt over a static one. It was tried. */
+  margin-top: -1px;
+  /* The pin lives inside; keep the stacking context self-contained. */
+  isolation: isolate;
+}
+
+/* ---------------------------------------------------------------------- */
+/* The chapter: a held backdrop with the copy scrolling over it             */
+/* ---------------------------------------------------------------------- */
+
+/* The pin's containing block, and the element every background position is
+   measured against. Its height is the content's — the backdrop below it
+   contributes none, because the stage cancels it out again. */
+.pricing-chapter {
+  position: relative;
+  background: var(--space-base);
+}
+
+/* One viewport of sky, held in the frame for the length of the chapter.
+ *
+ * Pinned rather than `position: sticky`, and that is not a preference: the page
+ * runs under ScrollSmoother, which translates the whole document body, and a
+ * sticky element inside a transformed ancestor resolves its offsets against a
+ * scrollport that is no longer where the pixels are. ScrollTrigger's pin knows
+ * about the smoother and holds the layer with a transform instead. The one place
+ * sticky *is* correct is reduced motion, where there is no smoother at all — see
+ * the reduced-motion block at the end of this file.
+ *
+ * Exactly one viewport tall, and that is the whole reason this is a separate
+ * layer from the content. Three of its children are canvases sized to their own
+ * box (see SpaceField), so a backdrop that spanned the chapter's full height
+ * would allocate several thousand pixels of buffer per depth layer for a sky
+ * that is only ever one screen deep. */
+.pricing-backdrop {
+  position: relative;
+  z-index: 0;
+  height: 100svh;
+  /* The star fields are scaled past their own box by the timeline, the floor is
+     250% wide and the nebula masses are 60vw blurs. All of them are clipped
+     here, which is also what keeps them off the section above during the
+     approach. */
+  overflow: hidden;
+  background: var(--space-base);
+}
+
+/* Pulled back over the backdrop, so the copy reads against it rather than under
+   it. The offset is the backdrop's own height, stated in the same unit, so the
+   two cancel exactly and the chapter's height is the content's height.
+ *
+ * Note for anyone retiming the pin: ScrollTrigger wraps the pinned layer in a
+ * `.pin-spacer` of the same height, so this margin keeps working after the pin
+ * is applied. It is measured against whichever of the two is the previous
+ * sibling. */
+.pricing-stage {
+  position: relative;
+  z-index: 1;
+  padding: 0 var(--p-gutter);
+  margin-top: -100svh;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 0 — the sky this chapter opens in                                       */
+/* ---------------------------------------------------------------------- */
+
+/* The chapter does not open on black and then find a sky — the Why chapter's last
+   layer already did that, up in the frame the reader is still looking at. What
+   arrives here is the far side of it: this backdrop's first frame is the sky that
+   chapter's threshold opens onto, so the reader crosses the join between two
+   sections without the composition changing.
+ *
+ * Which is why the sky is a shared component and not a local one (see
+ * SpaceField.tsx). Between the Why pin releasing and this backdrop being held
+ * there is about a screen of ordinary scrolling, and the two skies scroll past
+ * each other in plain view for all of it — any difference between them lands as
+ * a horizontal seam at the exact moment the page is supposed to feel continuous.
+ * Same markup, same base tone, same star patterns, stated once. */
+.pricing-sky {
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* The brighter region the reader is travelling toward, and the reason that screen
+   of scrolling is an approach rather than dead space: it comes up as the chapter
+   arrives, so the sky ahead is getting lighter the whole way in.
+ *
+ * A separate layer rather than a gradient on the field itself, and that is the
+ * point of it. A field with a bright centre has a *position* — two of them
+ * scrolling past each other read as two different places, which is exactly the
+ * seam the shared component exists to avoid. Masked to nothing at its own top
+ * edge for the same reason: the frame's first row has to match the bare sky
+ * above it. */
+.pricing-core {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    124% 92% at 50% 38%,
+    rgba(38, 52, 132, 0.85) 0%,
+    rgba(22, 34, 92, 0.5) 28%,
+    rgba(10, 18, 54, 0.2) 56%,
+    transparent 80%
+  );
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    #000 26%,
+    #000 100%
+  );
+  mask-image: linear-gradient(180deg, transparent 0%, #000 26%, #000 100%);
+  will-change: opacity;
+}
+
+/* ---------------------------------------------------------------------- */
+/* The background change                                                   */
+/* ---------------------------------------------------------------------- */
+
+/* The one number the whole colour change is authored against: 0 on arrival, 1 as
+   the chapter hands over to its run-out band. Registered, because an
+   unregistered custom property is a *string* — GSAP would swap one gradient for
+   another in a single frame instead of interpolating the stops. Inherited,
+   because it is written once on the backdrop and read by the layer below it.
+   Same device as the Why chapter's --why-fall and this file's own
+   --p-files-y. */
+@property --p-dusk {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+/* Act 2 — the chapter's own light. Three masses low in the frame that rise and
+   spread as the reader scrolls into the table, so the cards are lit from the
+   space they are sitting in rather than by a lamp that was always on.
+ *
+ * The stop *positions* travel with --p-dusk while the colours stay put. That is
+ * deliberate and it is the cheaper half of the effect as well as the better
+ * looking one: a moving light source reads as the frame travelling, where a
+ * crossfade between two coloured cards reads as a filter being swapped. The cost
+ * is one full-frame repaint per scrub frame, which is the same budget the Why
+ * chapter's nightfall band already runs at. */
+.pricing-bloom {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      82% 58% at 50% calc(98% - var(--p-dusk) * 32%),
+      rgb(var(--p-neb-violet) / 0.5) 0%,
+      rgb(var(--p-neb-violet) / 0.24) 30%,
+      rgba(12, 20, 58, 0.12) 58%,
+      transparent 82%
+    ),
+    radial-gradient(
+      58% 42% at calc(12% + var(--p-dusk) * 12%) calc(88% - var(--p-dusk) * 14%),
+      rgb(var(--p-neb-teal) / 0.34) 0%,
+      transparent 72%
+    ),
+    radial-gradient(
+      54% 40% at calc(90% - var(--p-dusk) * 10%) calc(26% + var(--p-dusk) * 10%),
+      rgb(var(--p-neb-violet) / 0.2) 0%,
+      transparent 70%
+    );
+  /* Feathered off the top row, like the core above and the vignette below, so
+     nothing this layer does can show up on the frame the Why chapter is still
+     handing over. */
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    #000 22%,
+    #000 100%
+  );
+  mask-image: linear-gradient(180deg, transparent 0%, #000 22%, #000 100%);
+  will-change: opacity;
+}
+
+/* Act 3 — the close. The frame sinks back to the tone it arrived on, from the
+   bottom up, which is the direction the reader is leaving in.
+ *
+ * Painted in the base tone itself rather than in a darker one, and that is what
+ * makes the handover provable rather than tuned: at full strength the lower frame
+ * is var(--space-base), and .pricing-tail's first stop is var(--space-base). The
+ * two surfaces meet on the same value, so the join cannot show however the rest
+ * of the background is retimed. */
+.pricing-dusk {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgb(var(--p-base-rgb) / 0) 0%,
+    rgb(var(--p-base-rgb) / 0.3) 28%,
+    rgb(var(--p-base-rgb) / 0.7) 62%,
+    rgb(var(--p-base-rgb) / 0.94) 100%
+  );
+  will-change: opacity;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Ambient background                                                      */
+/* ---------------------------------------------------------------------- */
+
+/* Above the washes: the table light, the floor and the horizon are the surface
+   the cards sit on, and a surface belongs *in* the space rather than behind it.
+   The grain and the vignette are frame furniture, so they are last. */
+.pricing-atmosphere {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* The table the row is laid on. A wide, low pool of light centred under the
+   cards — it is what stops them reading as floating in a void, and it comes up
+   as the reader scrolls into them. */
+.pricing-table-light {
+  position: absolute;
+  left: 50%;
+  top: 54%;
+  width: min(1500px, 128vw);
+  height: min(760px, 82svh);
+  translate: -50% -50%;
+  opacity: 0.16;
+  background: radial-gradient(
+    52% 50% at 50% 50%,
+    rgba(126, 196, 224, 0.22) 0%,
+    rgba(78, 140, 176, 0.11) 38%,
+    rgba(20, 44, 62, 0.05) 66%,
+    transparent 100%
+  );
+  filter: blur(6px);
+}
+
+/* Registered so GSAP can interpolate the offset as a length rather than
+   swapping strings, and so the transform below keeps its own perspective: the
+   timeline scrubs --p-files-y, never `transform`, because GSAP would recompose
+   the whole transform list and drop the perspective/rotateX that make this a
+   floor instead of a flat grid. Same device as the Why chapter's rank grid. */
+@property --p-files-y {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+.pricing-files {
+  --p-files-y: 0px;
+
+  position: absolute;
+  left: 50%;
+  bottom: -6%;
+  width: 250%;
+  height: 58%;
+  /* Faint enough to read as a horizon reference rather than as a lit floor in a
+     place that has no floor. */
+  opacity: 0.44;
+  transform: translate(-50%, var(--p-files-y)) perspective(1500px) rotateX(68deg);
+  transform-origin: 50% 100%;
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      rgba(155, 216, 237, 0.14) 0 1px,
+      transparent 1px
+    ),
+    linear-gradient(180deg, rgba(155, 216, 237, 0.14) 1px, transparent 1px);
+  /* 12.5% = one file of eight. The horizontal rhythm is the board's. */
+  background-size: 12.5% 82px;
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.5) 34%,
+    #000 100%
+  );
+}
+
+/* The table's far edge. Sits low enough to pass behind the lower third of the
+   frame rather than across the middle of it. */
+.pricing-horizon {
+  position: absolute;
+  left: 50%;
+  top: 80%;
+  width: 120%;
+  height: 1px;
+  translate: -50% 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(155, 216, 237, 0.07) 22%,
+    rgba(155, 216, 237, 0.12) 50%,
+    rgba(155, 216, 237, 0.07) 78%,
+    transparent
+  );
+}
+
+/* Breaks up the long gradients — an 8-bit display bands them badly.
+ *
+ * Masked away from the frame's top edge, like the washes above it, and for the
+ * same reason: the row above this one belongs to the Why chapter during the
+ * approach, and anything that exists on one side of that join and not the other
+ * is a line drawn across the page. A 0.06-alpha dot pattern sounds too faint to
+ * matter and is not — it lifts every pixel it lands on by a hair, so its edge
+ * reads as a change of surface even where its texture does not read at all. */
+.pricing-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  background-image: radial-gradient(
+    rgba(120, 160, 180, 0.06) 1px,
+    transparent 1px
+  );
+  background-size: 3px 3px;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    #000 22%,
+    #000 100%
+  );
+  mask-image: linear-gradient(180deg, transparent 0%, #000 22%, #000 100%);
+}
+
+/* Tightens as the chapter closes, so the frame narrows onto the table before it
+   goes. The resting value is the one it holds for most of the chapter, not a
+   default: the timeline only ever takes it up from here, and reduced motion
+   leaves it exactly where this rule puts it. */
+.pricing-vignette {
+  position: absolute;
+  inset: 0;
+  opacity: 0.72;
+  background: radial-gradient(
+    92% 78% at 50% 44%,
+    transparent 46%,
+    rgba(0, 1, 6, 0.42) 78%,
+    rgba(0, 1, 6, 0.7) 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    #000 20%,
+    #000 100%
+  );
+  mask-image: linear-gradient(180deg, transparent 0%, #000 20%, #000 100%);
+}
+
+/* ---------------------------------------------------------------------- */
+/* The title, centred in open space                                        */
+/* ---------------------------------------------------------------------- */
+
+/* Centred, and a full frame of its own. The composition has a subject already —
+   the sky the reader has just come through — and a headline set to one side of it
+   would be a headline ignoring the thing it is standing in.
+
+   A layout box only. The word inside it is a canvas, its accessible name comes
+   from the aria-label on the heading, and nothing in the column is interactive —
+   the field's own pointer repulsion listens on the window, so the layer stays out
+   of hit-testing entirely. */
+.pricing-head {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100svh;
+  padding: clamp(40px, 8svh, 96px) 0;
+  text-align: center;
+  color: var(--p-ink-soft);
+  pointer-events: none;
+}
+
+/* ── The word, in stars ─────────────────────────────────────────────────
+   Same device as the Why chapter's question: the string is drawn into an
+   offscreen canvas, sampled on a pixel grid, and every opaque sample flies into
+   place as a particle. Reused deliberately rather than for convenience — the two
+   chapters are one continuous scene either side of the hole, and the reader
+   should recognise the second title as the same voice as the first.
+
+   Plain, static type — no canvas, no particle field, no scroll-driven reveal.
+   The word is on screen at full strength from the first frame; only the sky
+   behind it keeps moving. */
+.pricing-title-plain {
+  position: relative;
+  width: 100%;
+  margin: clamp(-6px, -1svh, -2px) 0 clamp(4px, 1svh, 10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Inter", var(--sans);
+  font-size: clamp(46px, min(13.5vw, 19svh), 176px);
+  font-weight: 800;
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  background: linear-gradient(176deg, #f6f8ff 6%, #d3ddff 50%, #8f9bd8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 16px rgba(0, 1, 6, 0.8));
+}
+
+/* Symmetric, because the column is centred — a rule that runs off to one side of
+   a centred measure reads as a mistake rather than as a mark. */
+.pricing-rule {
+  width: clamp(90px, 14vw, 190px);
+  height: 1px;
+  margin-top: clamp(14px, 2.4svh, 28px);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--p-accent),
+    transparent
+  );
+  transform-origin: center;
+}
+
+/* One line, so it is set as a line: a shade larger, a little wider in the
+   letterfit, and on a measure it cannot wrap inside at any width this layout
+   runs at. `text-wrap: balance` rather than `pretty` for the same reason: if a
+   narrow frame does break it, it breaks into two halves of roughly equal length
+   instead of leaving one word on its own. */
+.pricing-standfirst {
+  max-width: 44ch;
+  margin-top: clamp(16px, 2.6svh, 30px);
+  font-family: var(--display);
+  font-size: clamp(17px, 1.7vw, 26px);
+  line-height: 146%;
+  letter-spacing: 0.005em;
+  color: var(--p-ink-soft);
+  text-wrap: balance;
+}
+
+/* ── Scroll indicator ───────────────────────────────────────────────────
+   The title has a frame to itself and the table is on the next one, so the frame
+   has to say which way the table is — and say it as a direction rather than as an
+   instruction: a light falling down a track, repeatedly, the way the reader has
+   to go.
+
+   A column rather than a row, because the axis *is* the message. Set in the label
+   face at the smallest size on the page: it is an affordance, not copy, and it
+   should be the last thing the eye lands on. */
+.pricing-cue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(9px, 1.4svh, 14px);
+  margin-top: clamp(22px, 4svh, 44px);
+  font-family: var(--label);
+  font-size: 10.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--p-ink-dim);
+}
+
+/* The track the light falls down. Brightest at its foot, so the gradient itself
+   points the same way the animation travels. */
+.pricing-cue i {
+  position: relative;
+  display: block;
+  width: 1px;
+  height: clamp(34px, 6svh, 58px);
+  overflow: hidden;
+  background: linear-gradient(
+    180deg,
+    rgba(155, 216, 237, 0.06),
+    rgba(155, 216, 237, 0.34) 52%,
+    rgba(155, 216, 237, 0.06)
+  );
+}
+
+/* Animated on `top` rather than on a transform, which is the one place on this
+   page that is the right call: the travel has to be the full height of a track
+   that is a clamp, and a percentage `top` resolves against the parent's height
+   where a percentage `translateY` would resolve against the 14px dot's own. The
+   cost is a 4px box in a 1px column, which is not a layout worth optimising. */
+.pricing-cue i b {
+  position: absolute;
+  left: -1.5px;
+  width: 4px;
+  height: 14px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, transparent, var(--p-accent));
+  box-shadow: 0 0 9px rgba(155, 216, 237, 0.55);
+  animation: pricing-cue-fall 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes pricing-cue-fall {
+  0% {
+    top: -18px;
+    opacity: 0;
+  }
+  24% {
+    opacity: 1;
+  }
+  76% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+.pricing-cue svg {
+  width: 15px;
+  height: 15px;
+  color: var(--p-accent);
+  opacity: 0.7;
+  animation: pricing-cue-nudge 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Arrives a beat after the light reaches the foot of the track, so the two read
+   as one gesture landing rather than two loops running at the same time. */
+@keyframes pricing-cue-nudge {
+  0%,
+  62% {
+    translate: 0 -2px;
+    opacity: 0.45;
+  }
+  80% {
+    translate: 0 2px;
+    opacity: 0.95;
+  }
+  100% {
+    translate: 0 -2px;
+    opacity: 0.45;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* The row                                                                 */
+/* ---------------------------------------------------------------------- */
+
+/* Four plans, side by side, one shared top edge and one shared baseline. Level
+   and square on purpose: a tilt is expressive while a card is in flight and an
+   obstacle once it is the thing being read — four feature lists on four
+   different angles force the eye to re-level for every comparison, and
+   comparison is the entire job of a price table.
+
+   A frame of its own, so the row is a composition rather than a block that
+   happens to follow the title. Explicit column counts rather than auto-fit:
+   four tiers divide cleanly into 4, 2 and 1, where auto-fit picks 3 at tablet
+   widths and leaves the fourth tier alone on a second row — which reads as an
+   afterthought rather than as the top of the ladder. */
+.pricing-plans {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-content: center;
+  gap: clamp(14px, 1.6vw, 22px);
+  width: min(100%, 1280px);
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: clamp(28px, 5svh, 72px) 0;
+}
+
+/* Two up. The grid's width is capped per step as well as its column count, so
+   two columns give two readable cards instead of two very wide ones. */
+@media (max-width: 1199px) {
+  .pricing-plans {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: min(100%, 820px);
+  }
+}
+
+/* One up. 720px is where two cards can no longer hold a six-item feature list
+   without breaking most lines onto three rows. */
+@media (max-width: 720px) {
+  .pricing-plans {
+    grid-template-columns: minmax(0, 1fr);
+    width: min(100%, 440px);
+  }
+
+  /* One column means no card is beside another, so there is no row to keep in
+     line and the reserved badge slot is just 38px of empty stock at the top of
+     three cards out of four. It earns its keep at two and four up; here it does
+     not, so the three that have no badge close it up. */
+  .pricing-badge-slot:empty {
+    display: none;
+  }
+}
+
+/* The grid item. Carries nothing visual — its whole job is to stretch the panel
+   to the row's height and to hold the pointer state the panel reads. */
+.pricing-card {
+  /* Pointer state, written from JS (see `trackPointer` in PricingSection.tsx)
+     and read by the specular layer below. Declared here so it has a resting
+     value before a pointer has ever touched the card, and so a card that is
+     never hovered costs nothing. */
+  --px: 50%;
+  --py: 30%;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* One panel per tier, and one surface — not two faces with a seam across the
+   middle. The old crest/terms split cost 296px of the card's 772px to a glyph and
+   a word, which pushed the price into the middle of the card and the button off
+   the bottom of the screen. The panel is a single column now and every pixel in
+   it is either information or the space that separates it.
+ *
+ * Stretches to the grid row's height and passes it down, so every card in a row
+ * ends on the same baseline. Without it the panels size to their own content and
+ * four cards end at four different heights inside four equal cells.
+ *
+ * Four things still make this read as a physical object rather than a div with a
+ * border, and they are the restrained half of what was here before:
+ *   1. a rim, not a border — a hairline in the tier's ink on the outside and a
+ *      darker one inset, which is how a printed edge catches light;
+ *   2. a three-tier shadow — a tight contact shadow, a mid drop and a wide
+ *      ambient — because one shadow at one blur always reads as a sticker, plus a
+ *      wide low-alpha halo in the nebula violet so the card picks up the colour of
+ *      the field it is floating in rather than reading as cut out and pasted on;
+ *   3. a bright catch along the top edge and a pointer-lit specular sheen, both
+ *      keyed to the light the rest of the stage is lit by;
+ *   4. a real corner radius and a matte, grained surface rather than a flat fill.
+ *
+ * What is gone: the foil ring, the engraved medallion, the breathing texture and
+ * the two-tone seam. Four ornaments competing with six lines of copy the reader
+ * has to compare line by line. */
+.pricing-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: clamp(22px, 1.7vw, 30px);
+  border: 1px solid rgb(var(--tier-rgb) / 0.2);
+  border-radius: var(--card-radius);
+  /* Clips the sheen's sweep to the panel's own curvature. */
+  overflow: hidden;
+  /* The sheen blends in `screen`, and a blend resolves against the nearest
+     stacking context's backdrop. Isolating here keeps the card's light on the
+     card instead of mixing it with the sky behind it. */
+  isolation: isolate;
+  background:
+    /* specular rake, top-left, same light as the rest of the stage */
+    linear-gradient(
+      148deg,
+      rgba(255, 255, 255, 0.055) 0%,
+      rgba(255, 255, 255, 0.015) 26%,
+      transparent 54%
+    ),
+    /* the tier's own tint, strongest where the name and price sit */
+      radial-gradient(
+        110% 46% at 50% 0%,
+        rgb(var(--tier-rgb) / 0.11) 0%,
+        transparent 72%
+      ),
+    /* one nebula wash from the foot, so the card is lit by what is around it */
+      radial-gradient(
+        84% 40% at 50% 104%,
+        rgb(var(--p-neb-violet) / 0.13) 0%,
+        transparent 74%
+      ),
+    /* Base stock, a step bluer than flat slate: the card is a lit object in a
+       blue-violet field and a neutral surface in one reads as grey paper. Lifted
+       from the old #070e1a so the feature lists clear 4.5:1 comfortably. */
+      linear-gradient(170deg, #101c2c 0%, #0a1322 58%, #060d19 100%);
+  box-shadow:
+    /* contact */ 0 2px 5px rgba(0, 2, 8, 0.6),
+    /* drop */ 0 14px 30px rgba(0, 2, 8, 0.55),
+    /* ambient */ 0 44px 80px rgba(0, 2, 8, 0.5),
+    /* field halo */ 0 0 58px rgb(var(--p-neb-violet) / 0.16),
+    /* the inset cut edge, under the rim above */
+      inset 0 0 0 1px rgba(0, 5, 12, 0.5);
+  /* 240ms, inside the 150-300ms band the rest of the page's micro-interactions
+     are tuned at, and decelerating — the page's one motion personality. */
+  transition:
+    transform 0.24s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.24s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.24s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* One bright hairline along the very top edge, so the card catches the overhead
+   light instead of being a flat cut-out. On a stage this dark it is the
+   difference between four objects and four holes. */
+.pricing-panel::before {
+  content: "";
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(var(--tier-rgb) / 0.5),
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* Surface grain, and the card's own handful of stars.
+ *
+ * The grain keeps the large flat areas matte — a perfectly smooth gradient at
+ * this size reads as glass, and card stock is not glass. The two sparse layers
+ * over it are the space effect, and they are deliberately sparse: at this
+ * spacing a card carries roughly a dozen specks, which reads as the sky showing
+ * faintly through a translucent surface.
+ *
+ * Static. It used to breathe on a 7.5s loop, which put four looping animations on
+ * screen under the six feature lists the reader is comparing — one animated
+ * element per view is the budget, and on this section the scroll-driven sky has
+ * already spent it. */
+.pricing-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+      rgba(150, 190, 210, 0.05) 1px,
+      transparent 1px
+    ),
+    radial-gradient(rgba(228, 238, 255, 0.45) 0.8px, transparent 1.4px),
+    radial-gradient(rgba(178, 196, 255, 0.28) 0.7px, transparent 1.2px);
+  background-size: 3px 3px, 53px 61px, 83px 71px;
+  background-position: 0 0, 13px 21px, 44px 7px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Restrained, and restrained for a reason rather than for taste: the cards land
+   in a straight row, so anything that scales or rotates one of them breaks the
+   alignment the reader is using to compare across the row. A lift, a brighter rim
+   and a longer shadow say "this one" without moving a single line of copy off the
+   line it shares with its neighbours.
+ *
+ * Note what is *not* here any more. Hovering used to drop every sibling panel to
+ * 0.46 opacity — and it fired off `.pricing-plans:hover`, so crossing a gutter
+ * dimmed the whole table with nothing picked out. It also used to lean the panel
+ * on two axes under the pointer, which rotated the feature lists off axis. Both
+ * are gone. */
+.pricing-card:hover .pricing-panel,
+.pricing-card:focus-within .pricing-panel {
+  transform: translateY(-6px);
+  border-color: rgb(var(--tier-rgb) / 0.52);
+  box-shadow:
+    0 3px 7px rgba(0, 2, 8, 0.62),
+    0 20px 40px rgba(0, 2, 8, 0.6),
+    0 56px 100px rgba(0, 2, 8, 0.55),
+    0 0 30px rgb(var(--tier-rgb) / 0.16),
+    0 0 78px rgb(var(--p-neb-violet) / 0.2),
+    inset 0 0 0 1px rgba(0, 5, 12, 0.5);
+}
+
+.pricing-card:hover,
+.pricing-card:focus-within {
+  /* Above its siblings while raised, so the longer shadow can cross a gutter
+     without being cut off by the next card. */
+  z-index: 20;
+}
+
+/* ── The recommended tier ────────────────────────────────────────────────
+   Promoted with the three cues that do not disturb the row: a brighter rim, a
+   stronger tint and its own halo. No scale and no negative margin — the whole
+   argument for a grid over a fan is that the four cards' rows line up, and a
+   featured card an eighth bigger than its neighbours breaks every one of them.
+   The filled button and the badge finish the job. */
+.pricing-card.is-featured .pricing-panel {
+  border-color: rgb(var(--tier-rgb) / 0.46);
+  background:
+    linear-gradient(
+      148deg,
+      rgba(255, 255, 255, 0.07) 0%,
+      rgba(255, 255, 255, 0.02) 26%,
+      transparent 54%
+    ),
+    radial-gradient(
+      110% 50% at 50% 0%,
+      rgb(var(--tier-rgb) / 0.18) 0%,
+      transparent 72%
+    ),
+    radial-gradient(
+      84% 40% at 50% 104%,
+      rgb(var(--p-neb-violet) / 0.16) 0%,
+      transparent 74%
+    ),
+    linear-gradient(170deg, #12212f 0%, #0b1524 58%, #060d19 100%);
+  box-shadow:
+    0 2px 5px rgba(0, 2, 8, 0.6),
+    0 16px 34px rgba(0, 2, 8, 0.58),
+    0 48px 88px rgba(0, 2, 8, 0.52),
+    0 0 32px rgb(var(--tier-rgb) / 0.18),
+    0 0 72px rgb(var(--p-neb-violet) / 0.2),
+    inset 0 0 0 1px rgba(0, 5, 12, 0.5);
+}
+
+.pricing-card.is-featured .pricing-panel::before {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(var(--tier-rgb) / 0.85),
+    transparent
+  );
+}
+
+/* ── Specular response ──────────────────────────────────────────────────
+   Two things on one layer, both keyed to the pointer, both off until the card is
+   actually being looked at:
+
+     the glare — a soft highlight that sits where the pointer is, so the surface
+                 has a light on it that moves. This is what is left of the old
+                 lean-plus-glare pair, and it is the half that was doing the work:
+                 a highlight travelling across a surface reads as material without
+                 rotating the six lines of copy underneath it.
+     the sweep — a narrow iridescent band that crosses the card once on hover, in
+                 the sky's own violet and teal. Foil stamping does exactly this
+                 when you turn it, and it is the reason to spend a hover on it at
+                 all: it says the finish is metallic rather than printed.
+
+   `screen` blending rather than plain alpha so the highlight adds light to
+   whatever it crosses instead of washing it grey — which matters over the feature
+   lists. */
+.pricing-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  overflow: hidden;
+  opacity: 0;
+  /* Not belt-and-braces alongside the zero opacity: a blended layer is a
+     composited one whether or not it is visible, and there are four of these
+     sitting over a star field that is already paying for its own. Hidden until it
+     is wanted keeps them out of the layer tree; the delayed discrete flip is what
+     lets the fade-out still play. */
+  visibility: hidden;
+  background: radial-gradient(
+    42% 34% at var(--px) var(--py),
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.055) 42%,
+    transparent 74%
+  );
+  mix-blend-mode: screen;
+  transition:
+    opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s linear 0.45s;
+  pointer-events: none;
+}
+
+.pricing-sheen::after {
+  content: "";
+  position: absolute;
+  /* Wider and taller than the panel so the band is fully off-frame at both ends
+     of its travel — a sweep that starts or stops inside the card reads as a
+     stripe appearing rather than as light crossing it. */
+  inset: -40% -70%;
+  background: linear-gradient(
+    74deg,
+    transparent 40%,
+    rgb(var(--p-neb-teal) / 0.34) 46%,
+    rgba(255, 255, 255, 0.24) 50%,
+    rgb(var(--p-neb-violet) / 0.34) 54%,
+    transparent 60%
+  );
+  transform: translate3d(-44%, 0, 0);
+  transition: transform 1.05s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.pricing-card:hover .pricing-sheen,
+.pricing-card:focus-within .pricing-sheen {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s;
+}
+
+.pricing-card:hover .pricing-sheen::after,
+.pricing-card:focus-within .pricing-sheen::after {
+  transform: translate3d(44%, 0, 0);
+}
+
+/* ---------------------------------------------------------------------- */
+/* What the tier is, and what it costs                                     */
+/* ---------------------------------------------------------------------- */
+
+/* The offer block: name, price, one line of description. Every row inside it is
+   on a reserved height so the four cards' names, prices and descriptions each
+   land on one shared line across the row — which is the only reason to lay a
+   price table out as a grid in the first place. A row that steps because one tier
+   has no description is a row the reader has to re-find four times.
+ *
+ * Above the content, both of the panel's texture layers are absolutely positioned
+ * pseudo-elements, so this needs a stacking position of its own to sit over the
+ * grain. */
+.pricing-head-band {
+  position: relative;
+  z-index: 1;
+}
+
+/* The badge's own row, above the name and right-aligned. Reserved on all four
+   cards — three of them are empty, and that is the point: the 24px it costs buys
+   four names, four prices and four buttons that each land on one shared line. */
+.pricing-badge-slot {
+  display: flex;
+  justify-content: flex-end;
+  align-items: start;
+  min-height: 24px;
+  margin-bottom: clamp(10px, 1.2vw, 14px);
+}
+
+/* Name row: the mark, then the name over its piece. `align-items: center` so the
+   40px chip centres on the two-line stack beside it rather than hanging off the
+   name's cap height — the stack is the taller of the two, so aligning to its top
+   leaves the chip sitting high. */
+.pricing-flag {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pricing-ident {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+/* ── The mark ────────────────────────────────────────────────────────────
+   The tier's piece, as a 40px stamped chip beside the name rather than as a 96px
+   glyph floating in its own 296px header. The chess identity is the reason this
+   product's tiers are named after pieces, so it stays — but it is an identifier,
+   and an identifier's job is to be recognised at a glance, not to be the largest
+   object on a card whose subject is a price.
+
+   Still foil-stamped rather than flat-filled: a gradient that runs white → tier →
+   dark down the letterform reads as metal, because that banding is what a curved
+   reflective surface does to an overhead light. `color: transparent` with a
+   clipped background means `text-shadow` would paint behind the glyph as a solid
+   blob, so the bloom is a `filter` instead, where it follows the clipped shape. */
+.pricing-glyph {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgb(var(--tier-rgb) / 0.3);
+  border-radius: 10px;
+  background: linear-gradient(
+    166deg,
+    rgb(var(--tier-rgb) / 0.2) 0%,
+    rgb(var(--tier-rgb) / 0.05) 62%,
+    transparent 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 2px 6px rgba(0, 2, 8, 0.4);
+  /* System symbol fonts carry the chess glyphs; the display and label stacks do
+     not, and a missing glyph here is the whole mark. */
+  font-family: "Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols 2",
+    "DejaVu Sans", sans-serif;
+  font-size: 21px;
+  line-height: 1;
+  color: var(--tier);
+  filter: drop-shadow(0 1px 0 rgba(0, 4, 12, 0.8));
+}
+
+.pricing-tier {
+  /* Inter rather than Bodoni. A Didone at 22px reversed out of near-black loses
+     its hairlines, and the tier name is a label the reader has to match against a
+     button three rows down — the display face stays where it earns its keep, on
+     the price. */
+  margin: 0;
+  font-family: "Inter", var(--sans);
+  font-weight: 600;
+  font-size: clamp(19px, 1.4vw, 22px);
+  line-height: 1.1;
+  letter-spacing: -0.012em;
+  color: var(--p-ink);
+}
+
+/* The piece the tier is keyed to, named. The price is *not* stated here — it is
+   the next row down on the same panel, and saying it twice reads as a mistake
+   rather than as emphasis. */
+.pricing-piece {
+  font-family: var(--label);
+  font-size: 9.5px;
+  /* Explicit, on this and on every other label-face element in the card. The
+     document root is set at `font: 18px/145%`, and a percentage line-height
+     computes at the root and inherits as that *computed length* — so a 9px mono
+     label inherits a 26px line box and sits in nearly three times the height it
+     needs. Left alone it was also what knocked the recommended card's whole
+     column 14px out of line with the other three, because its badge was the one
+     element in the row whose box was doing it. */
+  line-height: 1;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgb(var(--tier-rgb) / 0.85);
+}
+
+/* A pressed foil seal rather than a pill: a top-lit gradient fill, a bright
+   hairline along its upper edge and a small drop under it, so it sits *on* the
+   card instead of being drawn into it. Three cheap cues, and together they are
+   the difference between a stamp and a chip.
+
+   In flow now, in the name row's own slot on the outside edge, rather than pinned
+   absolutely to the card's corner. It can be in flow because the slot is reserved
+   on all four cards (see .pricing-flag) — which is the thing that used to make
+   this impossible: in flow without a reserved slot it made the recommended tier's
+   header taller than its neighbours' and pushed every row below it out of line,
+   and a row of cards whose internal divisions do not align looks broken even when
+   nothing is. */
+.pricing-badge {
+  padding: 6px 12px;
+  border: 1px solid rgb(var(--tier-rgb) / 0.42);
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    rgb(var(--tier-rgb) / 0.26) 0%,
+    rgb(var(--tier-rgb) / 0.08) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.26),
+    0 5px 14px rgba(0, 2, 8, 0.55),
+    0 0 20px rgb(var(--tier-rgb) / 0.2);
+  font-family: var(--label);
+  font-size: 9px;
+  font-weight: 500;
+  /* See the note on .pricing-piece — without this the seal's box is 38px tall in
+     a 24px slot and the recommended card's every row lands 14px below its
+     neighbours'. */
+  line-height: 1;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--tier);
+}
+
+/* ── The price ──────────────────────────────────────────────────────────
+   The largest thing on the card, and the first thing the eye lands on after the
+   name. Typographic hierarchy down the panel: price (display, largest) → what it
+   is for (prose) → the action (mono, filled or outlined) → what you get (mono
+   label, then the list). Each step changes both size and typeface, so the order
+   is legible before a word is read. */
+.pricing-price {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 9px;
+  margin: clamp(16px, 1.6vw, 22px) 0 0;
+  font-family: var(--display);
+  font-optical-sizing: auto;
+  color: var(--p-ink);
+}
+
+.pricing-price em {
+  font-style: normal;
+  font-size: clamp(42px, 3.6vw, 54px);
+  line-height: 0.92;
+  letter-spacing: -0.025em;
+  /* Lining, tabular figures: the four prices sit in a row and their digits have
+     to line up vertically from card to card. Bodoni's default figures are
+     proportional, which staggers them. */
+  font-variant-numeric: lining-nums tabular-nums;
+  /* The largest thing on the card, and neutral rather than tier-tinted: the price
+     is the one figure a reader compares straight across four cards, and a colour
+     that changes per card makes them look like four different kinds of number.
+     Falls from white through the chapter's ink to a cool grey, which is a Didone's
+     own contrast read as a reflection.
+   *
+   * Stops at #b8cbd6 rather than the old #8ea3b1 — the gradient's darkest stop is
+   * what the bottom third of every digit is actually set in, and that one sat at
+   * about 6:1 where this sits at 9:1. */
+  background: linear-gradient(
+    177deg,
+    #ffffff 0%,
+    #eaf4f9 40%,
+    #cfdee7 74%,
+    #b8cbd6 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 1px 1px rgba(0, 3, 10, 0.6));
+}
+
+.pricing-price i {
+  font-family: var(--label);
+  font-style: normal;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--p-ink-soft);
+}
+
+/* One line on what the tier is for, and a *reserved* two lines of room whether
+   or not this tier has one. Platinum carries no description in the content, and
+   letting that slot collapse steps the button and the whole feature list on one
+   card out of line with the other three. Reserved, the row simply has a gap on
+   that card — which reads as space, not as a fault. */
+.pricing-note {
+  min-height: calc(2 * 1.55em);
+  margin: clamp(12px, 1.4vw, 16px) 0 0;
+  font-family: "Inter", var(--sans);
+  font-size: clamp(13px, 0.95vw, 14px);
+  line-height: 1.55;
+  color: var(--p-copy);
+  text-wrap: pretty;
+}
+
+/* ---------------------------------------------------------------------- */
+/* What you get                                                            */
+/* ---------------------------------------------------------------------- */
+
+/* Below the button, and takes the slack in the card so every panel in a row ends
+   on the same baseline. */
+.pricing-included {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  /* The one divider the panel has left. It separates the offer from its terms, so
+     unlike a typographic mark it runs the full width of the column. */
+  margin-top: clamp(20px, 2.4svh, 28px);
+  padding-top: clamp(18px, 2.2svh, 24px);
+  border-top: 1px solid rgb(var(--tier-rgb) / 0.16);
+}
+
+/* "Everything in Gold, plus" — the line that makes the ladder legible, and
+   "What's included" on the entry tier, which has nothing below it to inherit
+   from. Set as a label with a trailing rule so it reads as a section head, not a
+   feature. */
+.pricing-inherits {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-family: var(--label);
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--p-ink-soft);
+}
+
+.pricing-inherits::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgb(var(--tier-rgb) / 0.3), transparent);
+}
+
+.pricing-features {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(9px, 1svh, 12px);
+  margin: clamp(14px, 1.7svh, 18px) 0 0;
+  padding: 0;
+  list-style: none;
+  font-family: "Inter", var(--sans);
+  font-size: clamp(12.5px, 0.92vw, 13.5px);
+  line-height: 1.48;
+  color: var(--p-copy);
+  text-wrap: pretty;
+}
+
+.pricing-features li {
+  display: flex;
+  gap: 10px;
+}
+
+/* A tick, not a square. Six tier-coloured squares say "six items"; six ticks say
+   "six things you get", which is the only sentence a feature list under a price
+   is trying to say — and it is the convention every reader already has for it.
+ *
+ * Drawn as a masked vector rather than as 26 inline SVG elements: same crisp
+ * scaling, tintable straight from --tier, and the markup stays a plain <li> list
+ * that a screen reader reads as six items rather than six items each preceded by
+ * a graphic. Sized and nudged onto the cap height of the first line. */
+.pricing-features li::before {
+  content: "";
+  flex: none;
+  width: 15px;
+  height: 15px;
+  margin-top: 0.14em;
+  background-color: var(--tier);
+  -webkit-mask: var(--p-tick) center / 15px 15px no-repeat;
+  mask: var(--p-tick) center / 15px 15px no-repeat;
+}
+
+/* ---------------------------------------------------------------------- */
+/* The action                                                              */
+/* ---------------------------------------------------------------------- */
+
+/* Directly under the price rather than at the foot of the card, which is the one
+   structural move that fixes the section's worst failure: at 772px tall the old
+   card put its button below the fold on any laptop, so the reader met a price
+   table with no way to act on it in frame. Here the four buttons also land on one
+   line across the row regardless of how many features each tier lists.
+ *
+ * 48px minimum so it clears the 44px touch-target floor with the label centred
+   rather than crammed. */
+.pricing-cta {
+  /* Positioned and clipped for the sheen below. */
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 48px;
+  margin-top: clamp(18px, 2.2svh, 26px);
+  padding: 14px 18px;
+  border: 1px solid rgb(var(--tier-rgb) / 0.46);
+  border-radius: 9px;
+  background: linear-gradient(
+    180deg,
+    rgb(var(--tier-rgb) / 0.16) 0%,
+    rgb(var(--tier-rgb) / 0.06) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 4px 12px rgba(0, 2, 8, 0.4);
+  font-family: var(--label);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  /* A link that does something should say so under the pointer. */
+  cursor: pointer;
+  color: var(--tier);
+  transition:
+    background 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* A single pass of light across the button on hover. Same device as the card's
+   own foil sweep and deliberately faster, so the two read as one gesture landing
+   on the thing being pointed at rather than two loops. Runs *over* the label —
+   which is the point: a reflection does not respect the type it crosses. */
+.pricing-cta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 36%,
+    rgba(255, 255, 255, 0.34) 50%,
+    transparent 64%
+  );
+  transform: translate3d(-130%, 0, 0);
+  transition: transform 0.72s cubic-bezier(0.22, 0.61, 0.36, 1);
+  pointer-events: none;
+}
+
+.pricing-cta:hover::after,
+.pricing-cta:focus-visible::after {
+  transform: translate3d(130%, 0, 0);
+}
+
+/* The recommended tier arrives already filled, so the eye lands on it without
+   needing the badge to do all the work. */
+.pricing-cta.is-primary {
+  border-color: transparent;
+  background: linear-gradient(
+    180deg,
+    rgb(var(--tier-rgb) / 0.98) 0%,
+    rgb(var(--tier-rgb) / 0.74) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 8px 22px rgb(var(--tier-rgb) / 0.22);
+  color: #04121a;
+}
+
+/* Both states fill, so an outlined button and a filled one converge on the same
+   answer under the pointer: the tier's own colour, with near-black type on it.
+   #04121a on every one of the four tier inks clears 9:1. */
+.pricing-cta:hover,
+.pricing-cta:focus-visible {
+  border-color: transparent;
+  background: var(--tier);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 10px 26px rgb(var(--tier-rgb) / 0.32);
+  color: #04121a;
+}
+
+.pricing-cta svg {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pricing-cta:hover svg,
+.pricing-cta:focus-visible svg {
+  transform: translateX(4px);
+}
+
+/* A real outline rather than a stack of box-shadows. The button's shadow set
+   carries its fill and its lift, so spending it on a focus ring — which is what
+   the old `box-shadow: 0 0 0 2px #000106, 0 0 0 3px var(--tier)` did — meant a
+   focused button lost both and read as flatter than an unfocused one. An outline
+   is a separate channel, so focus is additive, and it follows the 9px radius. */
+.pricing-cta:focus-visible {
+  outline: 2px solid var(--tier);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Footnote                                                                */
+/* ---------------------------------------------------------------------- */
+
+/* The chapter's closing stretch, and the margins are load-bearing rather than
+   generous. The backdrop is held until the chapter's last row reaches the bottom
+   of the frame, so whatever height follows the table is the scroll the closing act
+   has to happen in — with the footnote sitting tight under the row there was none,
+   and the frame went from fully lit to the run-out band in one step. About a
+   quarter of a screen above and a third below gives the close somewhere to be, and
+   gives the row somewhere to breathe out into on the way there. */
+.pricing-footnote {
+  position: relative;
+  z-index: 2;
+  margin: clamp(44px, 9svh, 110px) auto clamp(72px, 16svh, 190px);
+  font-family: var(--label);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--p-ink-dim);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Run-out                                                                 */
+/* ---------------------------------------------------------------------- */
+
+/* The way back out. The chapter runs on the sky's base tone and the FAQ below it
+   runs on the page's near-black, so the tail is a ramp between the two rather
+   than an edge — the same device the Why chapter's dusk band uses to get *into*
+   the dark. First stop is exactly the value the closing wash resolves the frame
+   to and the last is exactly the value the FAQ opens on, which is what keeps both
+   of its own joins invisible. */
+.pricing-tail {
+  position: relative;
+  z-index: 0;
+  width: 100%;
+  height: clamp(180px, 26svh, 320px);
+  background: linear-gradient(
+    180deg,
+    var(--space-base) 0%,
+    #030713 42%,
+    #01040c 76%,
+    #000106 100%
+  );
+}
+
+/* ---------------------------------------------------------------------- */
+/* Where the word sits in the frame                                        */
+/* ---------------------------------------------------------------------- */
+
+/* Above the middle, not on it.
+ *
+ * The column is centred in a 100svh box, so the letters start (box − rest −
+ * letters) / 2 down it — 207px on a 732px frame — and cross the fold that much
+ * later than the chapter does. Padding the bottom of the flex box lifts the whole
+ * column by half the padding, so 16svh here is 8svh of blank frame removed, and it
+ * reads as a composition rather than as a concession: the word and its invitation
+ * sit high, the scroll cue points into the lower third, and the lower third is
+ * where the table is.
+ *
+ * Note that shrinking the canvas box is not an alternative, though it looks like
+ * one: the column is centred, so taking height off the box moves the box down by
+ * half of what it takes off the letters, and the letters land in exactly the same
+ * place. The lift is the only thing that moves them. */
+@media (min-width: 1140px) {
+  .pricing-head {
+    padding-bottom: 16svh;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Reduced motion                                                          */
+/* ---------------------------------------------------------------------- */
+
+/* Every looping decoration in this chapter is CSS rather than GSAP — the
+   background timeline is scrubbed, so anything that has to keep moving while the
+   reader is parked cannot live in it. That means the reduced-motion contract has
+   to be honoured here as well as in the matchMedia context in the component, and
+   it has to be exhaustive: the JS branch takes the pin and the background ramp
+   away, and would otherwise leave a card surface breathing and a scroll
+   indicator running underneath a page that has been asked to hold still. */
+@media (prefers-reduced-motion: reduce) {
+  /* The backdrop still has to stay in the frame for the length of the chapter,
+     and here it can do it in CSS: there is no ScrollSmoother under reduced
+     motion (see HomePage.tsx), so nothing is transforming the document and
+     sticky resolves against the real scrollport. */
+  .pricing-backdrop {
+    position: sticky;
+    top: 0;
+  }
+
+  .pricing-panel,
+  .pricing-cta,
+  .pricing-cta::after,
+  .pricing-cta svg,
+  .pricing-sheen,
+  .pricing-sheen::after {
+    transition: none;
+  }
+
+  /* The hover lift is a transform, and a transform with no transition is a jump.
+     The rim and the shadow still change, so the card still answers the pointer —
+     it just does not move. */
+  .pricing-card:hover .pricing-panel,
+  .pricing-card:focus-within .pricing-panel {
+    transform: none;
+  }
+
+  /* The button's sheen has nowhere to travel to without a transition, so it would
+     otherwise sit parked off the left edge doing nothing on hover — harmless, but
+     the honest thing is to take the layer out rather than leave a dead one in. */
+  .pricing-cta::after {
+    display: none;
+  }
+
+  /* Nothing needs an opacity restated alongside these: every layer whose
+     animation carries its opacity also declares a resting value in its own rule,
+     so switching the animation off leaves it looking like a still frame of itself
+     rather than jumping to the browser's default of fully opaque.
+   *
+   * Two of the three entries here used to be four — the cards' surface texture
+   * breathed on a 7.5s loop and had to be switched off with them. It is static
+   * now at every preference, so the only looping decorations left in the chapter
+   * are the scroll cue's two. */
+  .pricing-cue i b,
+  .pricing-cue svg {
+    animation: none;
+  }
+
+  /* The one step that still exists at the top of the frame. Under reduced motion
+     the Why chapter above has no dive and therefore no sky — it ends on the page's
+     near-black — while this chapter is painted in the sky's base tone regardless.
+     A ramp back to #000106 over the backdrop's first rows removes it.
+   *
+   * Deliberately inside this media query: at every other width and preference the
+   * Why chapter *does* hand over a sky, and there a black ramp would be drawing
+   * the very edge it is meant to hide. */
+  .pricing-backdrop::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: clamp(90px, 16svh, 180px);
+    z-index: 3;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      #000106 0%,
+      rgba(0, 1, 6, 0.72) 44%,
+      rgba(0, 1, 6, 0) 100%
+    );
+  }
+}

@@ -1,0 +1,2416 @@
+.hero-section {
+  position: relative;
+  width: 100vw;
+  height: 100svh;
+  min-height: 100svh;
+  overflow: hidden;
+  /* Matches the original hero-bg.png's actual background color (sampled
+     at rgb(0,1,6) across its corners/edges) rather than an eyeballed
+     dark tone — this is what keeps the primary.webp cutout's edges from
+     showing a color seam against the section fill, i.e. looking pasted. */
+  background: #000106;
+  isolation: isolate;
+}
+
+/* Sized and positioned in JS (HeroSection.tsx) to exactly match the
+   `object-fit: cover` render rect of hero-bg at the current viewport size.
+   The HUD panels are positioned as percentages *inside* this frame, so
+   they always line up with the artwork whether it's cropped top/bottom,
+   left/right, or not at all. */
+.hero-art-frame {
+  position: absolute;
+  /* Deliberately NOT a stacking context (no z-index, no container-type).
+     `container-type` implies `contain: layout`, which would trap the mist
+     layer inside the frame and force it to paint *below* .hero-atmosphere
+     no matter how high its z-index went. The cqw container was moved to
+     .hero-clouds, which is inset:0 of this frame and therefore has the
+     identical inline size, so panel sizing is unchanged. */
+}
+
+.hero-cloud-mask-def {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.hero-clouds {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* Sits on top: above both subject images (z-index 2) *and* above
+     .hero-atmosphere (6), so the fog reads as weather in front of the
+     scene rather than something buried under the vignette. Still below
+     .hero-layout (9) / .hero-header (10) so the copy stays crisp. */
+  z-index: 7;
+  /* Container for the HUD panels' cqw-based sizing (moved off
+     .hero-art-frame — see the note there). Same inline size as the frame. */
+  container-type: inline-size;
+}
+
+.hero-clouds > div {
+  overflow: visible !important;
+}
+
+/* Only the WebGL output canvas paints the fog; masking it (not the
+   pointer-tracking content div) keeps the hole aligned to the hero art
+   while leaving the panels' own hover/pointer handling untouched. */
+.hero-clouds canvas:last-child {
+  mask: url(#hero-cloud-mask);
+  -webkit-mask: url(#hero-cloud-mask);
+  /* The mask shapes are opaque white (visible) with opaque black ovals
+     (hidden) — that's a *luminance* mask, not an alpha one. "alpha" mode
+     ignores color and only reads transparency; since every shape here is
+     fully opaque, alpha mode saw "opaque everywhere" and showed mist
+     everywhere, which is why the holes had no visible effect. */
+  mask-mode: luminance;
+  -webkit-mask-mode: luminance;
+}
+
+
+
+/* ---------------------------------------------------------------------- */
+/* Hero image layers                                                      */
+/* ---------------------------------------------------------------------- */
+
+/* The primary treatment is always the stable base image. */
+.hero-primary {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  z-index: 2;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* The alternate treatment is first clipped to the opaque subject region,
+   which prevents source-canvas borders and faint decorative alpha from
+   appearing. The image then fades in through two overlapping feathered
+   ellipses, producing an organic crossfade rather than a circular hole. */
+.hero-reveal-subject {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  mask: url(#hero-reveal-subject-mask);
+  -webkit-mask: url(#hero-reveal-subject-mask);
+  mask-mode: luminance;
+  -webkit-mask-mode: luminance;
+  /* Hidden until the hover reveal is actually running (toggled from
+     HeroSection.tsx). A masked, full-viewport image layer costs a render
+     surface and a mask composite on every frame even at opacity 0 — with
+     the WebGL fog invalidating the hero on every frame, that was a full
+     dropped frame during scroll for a layer nobody could see. */
+  visibility: hidden;
+}
+
+/* The spotlight itself: a box just big enough to hold both feathered
+   ellipses, carrying a mask authored *once* against its own size.
+
+   The gradients used to live on the full-frame image and be re-centred every
+   frame by writing --reveal-x/y into their `at` position. Moving a
+   gradient's centre changes the gradient, so the browser had to regenerate a
+   full-viewport mask bitmap on every pointer move — measured at ~9ms a frame
+   during a cursor sweep, which is the whole budget on a 120Hz display. Here
+   the mask never changes: every stop is expressed in --rv-r (set on resize
+   only), and following the cursor is a `transform` on this box, which the
+   compositor handles without repainting anything. The inner shift below
+   cancels that transform out so the artwork stays registered with the frame
+   — the same mask/counter-shift split the features curtain uses. */
+.hero-reveal-window {
+  position: absolute;
+  left: 0;
+  top: 0;
+  --rv-r: 160px;
+  width: calc(var(--rv-r) * 3.2);
+  height: calc(var(--rv-r) * 2);
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+  -webkit-mask-image:
+    radial-gradient(
+      ellipse calc(var(--rv-r) * 1.55) calc(var(--rv-r) * 0.92) at
+        calc(var(--rv-r) * 1.6) var(--rv-r),
+      #000 0%,
+      rgba(0, 0, 0, 0.92) 18%,
+      rgba(0, 0, 0, 0.54) 48%,
+      rgba(0, 0, 0, 0.14) 74%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse calc(var(--rv-r) * 0.82) calc(var(--rv-r) * 0.56) at
+        calc(var(--rv-r) * 1.94) calc(var(--rv-r) * 0.8),
+      rgba(0, 0, 0, 0.72) 0%,
+      rgba(0, 0, 0, 0.26) 58%,
+      transparent 100%
+    );
+  -webkit-mask-composite: source-over;
+  mask-image:
+    radial-gradient(
+      ellipse calc(var(--rv-r) * 1.55) calc(var(--rv-r) * 0.92) at
+        calc(var(--rv-r) * 1.6) var(--rv-r),
+      #000 0%,
+      rgba(0, 0, 0, 0.92) 18%,
+      rgba(0, 0, 0, 0.54) 48%,
+      rgba(0, 0, 0, 0.14) 74%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse calc(var(--rv-r) * 0.82) calc(var(--rv-r) * 0.56) at
+        calc(var(--rv-r) * 1.94) calc(var(--rv-r) * 0.8),
+      rgba(0, 0, 0, 0.72) 0%,
+      rgba(0, 0, 0, 0.26) 58%,
+      transparent 100%
+    );
+  mask-composite: add;
+}
+
+/* Counter-transform, so the moving mask window slides over artwork that
+   stays put. */
+.hero-reveal-shift {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-reveal {
+  position: absolute;
+  left: 0;
+  top: 0;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Kept as a ref target for compatibility with the existing scene, but the
+   visible scanner ring has intentionally been removed. */
+.hero-reveal-glow {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Panel shell                                                            */
+/* ---------------------------------------------------------------------- */
+
+.holo-panel {
+  position: absolute;
+  /* Stacking context, so each panel's own bloom layer (z-index -1) stays
+     tucked behind its frame instead of sliding under the artwork. */
+  z-index: 0;
+  box-sizing: border-box;
+  color: #7dafc2;
+  font-family: var(--mono, ui-monospace, Consolas, monospace);
+  /* The root stylesheet sets line-height as an absolute 145% of 18px, which
+     is inherited as ~26px and would give every 10px caption in here the
+     leading of a body paragraph — the main reason the panels looked airy and
+     under-set. Everything below is typeset against this instead. */
+  line-height: 1.15;
+  will-change: opacity, transform;
+}
+
+/* Projected bloom around the panel. This is the highlight that stops the
+   readouts reading as flat dark cards pasted on the picture — light appears
+   to spill off the hologram onto the scene behind it. */
+/* Kept deliberately tighter than the panel's old bloom. At -16%/-12% with a
+   14px blur the halo extended far enough past the frame that the *halo*
+   read as the panel's edge and the frame (and its corner brackets) looked
+   like an inner detail sitting inside a much larger object. Pulled in so the
+   light still spills onto the scene but the panel's real boundary is the one
+   you read. */
+.holo-aura {
+  position: absolute;
+  inset: -11% -8%;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 42% / 46%;
+  background:
+    radial-gradient(58% 58% at 26% 24%, rgba(104, 206, 244, 0.17), transparent 72%),
+    radial-gradient(66% 66% at 76% 82%, rgba(52, 146, 208, 0.13), transparent 74%);
+  filter: blur(11px);
+  animation: holo-aura-breathe 5.4s ease-in-out infinite;
+}
+
+@keyframes holo-aura-breathe {
+  0%,
+  100% {
+    opacity: 0.78;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.045);
+  }
+}
+
+.holo-panel-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  box-sizing: border-box;
+  /* Scaled down together with the type below, so the panels shrink as a
+     whole rather than just losing their breathing room. */
+  padding: clamp(8px, 1.02cqw, 14px) clamp(10px, 1.32cqw, 17px)
+    clamp(9px, 1.06cqw, 14px);
+  background:
+    /* fine scanlines */
+    repeating-linear-gradient(
+      180deg,
+      rgba(140, 224, 255, 0.02) 0px,
+      rgba(140, 224, 255, 0.02) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    /* light entering from the top-left corner, like a projector cone */
+    radial-gradient(
+      130% 95% at 10% -8%,
+      rgba(78, 180, 224, 0.16) 0%,
+      transparent 62%
+    ),
+    linear-gradient(
+      165deg,
+      rgba(6, 19, 29, 0.78) 0%,
+      rgba(2, 8, 13, 0.9) 100%
+    );
+  /* No backdrop-filter here on purpose. The panel's own background above is
+     78-90% opaque, so a 2.5px blur behind it was not visible — but it did
+     force the browser to read back and re-blur the region of the scene
+     behind each panel on every frame the WebGL fog updated, which measured
+     as a whole dropped frame during scroll. The frosted-glass cue is kept
+     where it actually reads: the nav pill (.hero-nav), which sits on a 42%
+     background. */
+  border: 1px solid rgba(126, 222, 255, 0.2);
+  border-radius: 3px;
+  box-shadow:
+    inset 0 1px rgba(178, 238, 255, 0.16),
+    inset 0 0 24px rgba(56, 189, 248, 0.07),
+    0 0 0 1px rgba(120, 218, 255, 0.05),
+    /* Outer glow pulled in from 38px: combined with the aura it was throwing
+       a halo wider than the bracket gap, which is what made the frame look
+       like it sat inside a bigger, softer box. */
+    0 0 10px rgba(64, 176, 232, 0.14),
+    0 0 24px rgba(42, 142, 200, 0.1),
+    0 8px 20px rgba(0, 3, 8, 0.46);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px, 0.76cqw, 9px);
+  overflow: hidden;
+  animation: holo-flicker 6.5s steps(1) infinite;
+}
+
+.holo-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px, 0.76cqw, 9px);
+}
+
+.depth-panel .holo-panel-inner {
+  animation-delay: 0.4s;
+}
+.eval-panel .holo-panel-inner {
+  animation-delay: 1.8s;
+}
+.bestmove-panel .holo-panel-inner {
+  animation-delay: 3.1s;
+}
+
+/* Faint fixed scanline texture layered under the moving grid, sells the
+   "projected readout" feel without any glossy diagonal sweep. */
+.holo-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: linear-gradient(
+      90deg,
+      rgba(125, 216, 255, 0.03) 1px,
+      transparent 1px
+    ),
+    linear-gradient(0deg, rgba(125, 216, 255, 0.03) 1px, transparent 1px);
+  background-size: 10px 10px;
+  pointer-events: none;
+}
+
+/* Thin bright band that slowly travels top-to-bottom, like an active radar
+   / OCR scan reading the panel's data — a hologram cue, not a shine sweep. */
+.holo-scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -20%;
+  height: 22%;
+  z-index: 1;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(150, 228, 255, 0.11) 46%,
+    rgba(198, 242, 255, 0.16) 50%,
+    rgba(150, 228, 255, 0.11) 54%,
+    transparent 100%
+  );
+  pointer-events: none;
+  animation: holo-scan-move 3.6s linear infinite;
+}
+
+@keyframes holo-scan-move {
+  0% {
+    transform: translateY(0%);
+  }
+  100% {
+    transform: translateY(560%);
+  }
+}
+
+/* Interlace: the raster a projected image is built from, crawling slowly
+   upward. Reads as the panel being *drawn* continuously rather than being a
+   static surface. */
+.holo-interlace {
+  position: absolute;
+  inset: -30% 0;
+  z-index: 1;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(158, 232, 255, 0.05) 0px,
+    rgba(158, 232, 255, 0.05) 1px,
+    transparent 1px,
+    transparent 6px
+  );
+  animation: holo-interlace-crawl 2.6s linear infinite;
+}
+
+@keyframes holo-interlace-crawl {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-6px);
+  }
+}
+
+/* Projected edge light: bright hairlines along the top and bottom where the
+   hologram's plane catches the beam. */
+.holo-edge {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background:
+    linear-gradient(
+        90deg,
+        transparent 4%,
+        rgba(168, 236, 255, 0.5) 38%,
+        rgba(210, 248, 255, 0.62) 52%,
+        transparent 96%
+      )
+      top / 100% 1px no-repeat,
+    linear-gradient(
+        90deg,
+        transparent 12%,
+        rgba(140, 220, 250, 0.26) 50%,
+        transparent 92%
+      )
+      bottom / 100% 1px no-repeat;
+}
+
+/* Subtle digital jitter, like a live readout momentarily losing signal —
+   irregular and infrequent so it reads as data flicker, not a glossy sweep. */
+@keyframes holo-flicker {
+  0%,
+  100% {
+    opacity: 1;
+    filter: none;
+  }
+  38% {
+    opacity: 1;
+    filter: none;
+  }
+  38.4% {
+    opacity: 0.92;
+    filter: brightness(1.28) saturate(1.2);
+  }
+  38.8% {
+    opacity: 1;
+    filter: none;
+  }
+  62% {
+    opacity: 1;
+  }
+  62.4% {
+    opacity: 0.76;
+    filter: brightness(0.82);
+    transform: translateX(0.7px);
+  }
+  62.9% {
+    opacity: 1;
+    filter: none;
+    transform: translateX(0);
+  }
+  85% {
+    opacity: 1;
+  }
+  85.3% {
+    opacity: 0.88;
+    transform: translateX(-0.7px);
+  }
+  85.6% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* HUD corner brackets                                                    */
+/* ---------------------------------------------------------------------- */
+
+/* Registration brackets, sitting just *outside* the panel frame.
+
+   They used to be placed at -1px, which put their 1.5px stroke directly on
+   top of the panel's own 1px border: instead of reading as brackets they
+   read as four thickened corners of the border, i.e. as part of the panel
+   rather than a frame around it. --holo-bracket-gap lifts them clear of the
+   border so the gap between the two is legible, and they are smaller and
+   a hair thinner so they read as precise instrument ticks rather than heavy
+   corner blocks. */
+.holo-panel {
+  --holo-bracket: clamp(7px, 0.95cqw, 12px);
+  --holo-bracket-gap: 4px;
+  --holo-bracket-weight: 1.25px;
+}
+
+.holo-corner {
+  position: absolute;
+  width: var(--holo-bracket);
+  height: var(--holo-bracket);
+  z-index: 3;
+  border: 0 solid #7ec2da;
+  filter: drop-shadow(0 0 3px rgba(150, 224, 250, 0.5));
+  pointer-events: none;
+}
+
+/* The engine revising its score: the panel frame flares for a beat, so the
+   whole readout acknowledges the change rather than only the digits. */
+.holo-panel.holo-revised .holo-corner {
+  animation: holo-corner-flare 0.85s ease-out;
+}
+
+.holo-panel.holo-revised .holo-edge {
+  animation: holo-edge-flare 0.85s ease-out;
+}
+
+@keyframes holo-corner-flare {
+  0% {
+    border-color: #eafaff;
+    filter: drop-shadow(0 0 9px rgba(200, 244, 255, 0.95));
+  }
+  100% {
+    border-color: #7ec2da;
+    filter: drop-shadow(0 0 3px rgba(150, 224, 250, 0.5));
+  }
+}
+
+@keyframes holo-edge-flare {
+  0% {
+    opacity: 1;
+    filter: brightness(2.1);
+  }
+  100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+/* Scoped to .holo-corner rather than left as bare .corner-* selectors: the
+   loading screen reuses the same modifier names for its own overlay
+   brackets, and whichever stylesheet was bundled last silently won. */
+.holo-corner.corner-tl {
+  top: calc(-1 * var(--holo-bracket-gap));
+  left: calc(-1 * var(--holo-bracket-gap));
+  border-width: var(--holo-bracket-weight) 0 0 var(--holo-bracket-weight);
+}
+.holo-corner.corner-tr {
+  top: calc(-1 * var(--holo-bracket-gap));
+  right: calc(-1 * var(--holo-bracket-gap));
+  border-width: var(--holo-bracket-weight) var(--holo-bracket-weight) 0 0;
+}
+.holo-corner.corner-bl {
+  bottom: calc(-1 * var(--holo-bracket-gap));
+  left: calc(-1 * var(--holo-bracket-gap));
+  border-width: 0 0 var(--holo-bracket-weight) var(--holo-bracket-weight);
+}
+.holo-corner.corner-br {
+  bottom: calc(-1 * var(--holo-bracket-gap));
+  right: calc(-1 * var(--holo-bracket-gap));
+  border-width: 0 var(--holo-bracket-weight) var(--holo-bracket-weight) 0;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Typography                                                             */
+/* ---------------------------------------------------------------------- */
+
+/* Heading row: caption, a hairline rule that consumes the leftover width,
+   and a status tag. Small caps-y mono at wide tracking against much larger
+   value type gives the panels a real typographic hierarchy instead of two
+   similar-sized lines. */
+.holo-label {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: clamp(8.5px, 0.66cqw, 10px);
+  font-weight: 700;
+  /* 0.22em was wide enough that the caption alone set the panel's minimum
+     width on mid-size frames, which is part of why the panels had to carry
+     large min-widths and ended up oversized. */
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #a8d2e0;
+}
+
+.holo-label-text {
+  white-space: nowrap;
+  text-shadow: 0 0 6px rgba(148, 226, 255, 0.3);
+}
+
+.holo-label-rule {
+  flex: 1 1 auto;
+  min-width: 5px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(150, 222, 246, 0.42),
+    rgba(150, 222, 246, 0.04)
+  );
+}
+
+.holo-label-tag {
+  flex: none;
+  padding: 1px 4px;
+  font-size: 0.92em;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: rgba(190, 238, 251, 0.74);
+  border: 1px solid rgba(150, 222, 246, 0.24);
+  border-radius: 2px;
+  background: rgba(94, 200, 240, 0.08);
+  box-shadow: inset 0 0 9px rgba(120, 214, 250, 0.14);
+}
+
+.holo-label::before {
+  content: '';
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #7fd8f0;
+  box-shadow: 0 0 6px rgba(127, 216, 240, 0.8);
+  animation: holo-pulse-dot 1.6s ease-in-out infinite;
+}
+
+@keyframes holo-pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.7);
+  }
+}
+
+.holo-value {
+  display: flex;
+  align-items: baseline;
+  gap: 0.16em;
+  max-width: 100%;
+  /* Ceilings brought down ~12% across the panel type. On a wide frame every
+     one of these sat pinned at its maximum while the panel kept scaling with
+     the artwork, so the readouts pressed against the padding and the whole
+     HUD read a size too big for the scene. */
+  font-size: clamp(15px, 1.62cqw, 23px);
+  font-weight: 700;
+  color: #a6e8fa;
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+  overflow: hidden;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  /* Split-channel fringe plus bloom — the projected-light look a flat glow
+     can't give on its own. */
+  text-shadow:
+    0.7px 0 rgba(255, 104, 132, 0.24),
+    -0.7px 0 rgba(96, 226, 255, 0.3),
+    0 0 7px rgba(126, 216, 246, 0.42),
+    0 0 20px rgba(74, 176, 226, 0.24);
+}
+
+/* Denominators sit well below the digits they qualify, so "28/45" reads as
+   one value rather than two. */
+.holo-unit {
+  flex: none;
+  font-size: 0.46em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(166, 232, 250, 0.52);
+  text-shadow: none;
+}
+
+/* Magnitude suffix ("M" for millions) is part of the reading, not an aside:
+   near the digits' own size and brightness so the scale can't be missed. */
+.holo-unit-mag {
+  margin-left: -0.04em;
+  font-size: 0.68em;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: rgba(186, 240, 253, 0.9);
+  text-shadow:
+    0 0 7px rgba(126, 216, 246, 0.42),
+    0 0 20px rgba(74, 176, 226, 0.24);
+}
+
+.holo-value.large {
+  font-size: clamp(17px, 1.84cqw, 26px);
+}
+
+.holo-value.small {
+  font-size: clamp(12px, 1.16cqw, 16px);
+}
+
+/* The best-move readout ("40...♟xh5") is the longest string shown in any
+   panel, so it gets a tighter clamp of its own: font-size scales off the
+   frame width via cqw while the panel width scales off its own (smaller)
+   percentage, and the general .large clamp outgrows the panel through the
+   middle of the viewport range even though it fits at the clamp's ends. */
+.bestmove-panel .holo-value.large {
+  font-size: clamp(14px, 1.52cqw, 21px);
+}
+
+.holo-value.positive {
+  color: #8ce0f6;
+}
+
+.holo-value.negative {
+  color: #f39a94;
+  text-shadow:
+    0.7px 0 rgba(255, 92, 92, 0.3),
+    -0.7px 0 rgba(255, 196, 168, 0.22),
+    0 0 8px rgba(240, 142, 132, 0.4),
+    0 0 20px rgba(200, 92, 82, 0.22);
+}
+
+.holo-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.holo-value-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Movement since the previous ply. A level alone doesn't say which way the
+   assessment is going; this does. */
+.holo-delta {
+  flex: none;
+  padding: 1px 4px;
+  font-size: clamp(8.5px, 0.68cqw, 10.5px);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+  color: rgba(178, 214, 226, 0.5);
+  border: 1px solid rgba(150, 222, 246, 0.14);
+  border-radius: 2px;
+  transition: color 200ms ease, border-color 200ms ease, background-color 200ms ease;
+}
+
+.holo-delta.up {
+  color: #8ce0f6;
+  border-color: rgba(140, 224, 246, 0.34);
+  background: rgba(94, 200, 240, 0.09);
+}
+
+.holo-delta.down {
+  color: #f39a94;
+  border-color: rgba(243, 154, 148, 0.3);
+  background: rgba(220, 110, 100, 0.08);
+}
+
+/* Secondary telemetry line. Tiny, wide-tracked, and split by a rule so the
+   two figures sit at opposite ends of the panel. */
+/* The telemetry line is what actually decided each panel's minimum width —
+   "WHITE IS AHEAD · WIN 50%" in uppercase mono at 0.14em tracking is the
+   longest unbreakable run in any panel. Smaller and tighter here is what
+   lets the min-widths below come down. */
+.holo-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: clamp(8px, 0.6cqw, 9.5px);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(163, 205, 220, 0.54);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.holo-meta b {
+  font-weight: 700;
+  color: rgba(200, 240, 251, 0.88);
+}
+
+.holo-meta-sep {
+  flex: 1 1 auto;
+  min-width: 5px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(150, 222, 246, 0.22),
+    rgba(150, 222, 246, 0.04)
+  );
+}
+
+/* Depth progress: ticked track with a lit fill and a bright leading cap. */
+.holo-bar {
+  position: relative;
+  height: 5px;
+  margin-top: 2px;
+  border: 1px solid rgba(150, 222, 246, 0.18);
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(150, 222, 246, 0.13) 0px,
+    rgba(150, 222, 246, 0.13) 1px,
+    transparent 1px,
+    transparent 5px
+  );
+  overflow: hidden;
+}
+
+.holo-bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(84, 190, 236, 0.32),
+    rgba(178, 240, 255, 0.92)
+  );
+  box-shadow: 0 0 10px rgba(140, 224, 250, 0.7);
+}
+
+.holo-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  bottom: -1px;
+  right: 0;
+  width: 2px;
+  background: #e8fbff;
+  box-shadow: 0 0 8px rgba(200, 246, 255, 0.95);
+}
+
+/* Sub-heading for a secondary block inside a panel: caption plus a hairline
+   rule, no status dot (that belongs to the panel's own heading). */
+.holo-caption {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 1px;
+  font-size: clamp(7.5px, 0.57cqw, 9px);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(163, 205, 220, 0.5);
+}
+
+.holo-caption span {
+  white-space: nowrap;
+}
+
+.holo-caption i {
+  flex: 1 1 auto;
+  min-width: 5px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(150, 222, 246, 0.28),
+    rgba(150, 222, 246, 0.03)
+  );
+}
+
+/* The continuation the engine expects after its suggested move. */
+.holo-pv {
+  min-width: 0;
+  font-size: clamp(9.5px, 0.82cqw, 12px);
+  color: rgba(184, 222, 236, 0.62);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 0 6px rgba(120, 200, 235, 0.25);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Panel positions (matched to reference.png, 1672x941 native)            */
+/* ---------------------------------------------------------------------- */
+
+/* Heights are content-driven now. The panels previously carried fixed
+   percentage heights, which clipped the readouts mid-glyph at some viewport
+   sizes and left slack at others; the mist holes and the connection beams
+   are both measured from the real rendered rects, so letting the panels size
+   themselves costs nothing. */
+/* Widths (and their min-width floors) are ~12% down on what they were, in
+   step with the type scale above. Two things were making the HUD read
+   oversized: on a wide frame the type was pinned at its maximum while these
+   percentages kept growing with the artwork, and on a mid-size frame
+   (roughly 1000-1400px of frame width) the old min-widths of 178/214/218px
+   overrode the percentages entirely and inflated the panels by 30-40% past
+   the composition they were authored for. Both are fixed by scaling the box
+   and its contents together. The `left`/`top` anchors are unchanged — they
+   are measured against the artwork, and the panels now simply take less
+   room to the right of them. */
+.depth-panel {
+  left: 47.4%;
+  top: 23%;
+  width: 11%;
+  min-width: 158px;
+}
+
+/* --hud-shift is published by HeroSection.tsx: how far the art frame
+   overhangs the viewport's right edge on narrow/tall viewports. Pulling the
+   two right-hand panels back by it keeps them fully on screen. A margin (not
+   a transform) so offsetLeft still reports the real position the mist holes
+   and connection beams are measured from. */
+.eval-panel {
+  left: 82.8%;
+  top: 22.6%;
+  width: 13.7%;
+  min-width: 190px;
+  margin-left: calc(-1 * var(--hud-shift, 0px));
+}
+
+.bestmove-panel {
+  left: 82.4%;
+  top: 49.4%;
+  width: 14%;
+  min-width: 194px;
+  margin-left: calc(-1 * var(--hud-shift, 0px));
+}
+
+/* ---------------------------------------------------------------------- */
+/* Evaluation chart                                                       */
+/* ---------------------------------------------------------------------- */
+
+.chart-wrap {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+}
+
+.eval-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.chart-grid line {
+  stroke: rgba(150, 222, 246, 0.085);
+}
+
+.chart-zero {
+  stroke: rgba(186, 232, 248, 0.3);
+  stroke-dasharray: 3 3;
+}
+
+.chart-area {
+  opacity: 0.2;
+  transition: fill 0.35s ease;
+}
+
+.chart-path {
+  transition: stroke 0.35s ease;
+}
+
+/* The trend line's glow, drawn as a wide translucent stroke rather than a
+   drop-shadow filter — see the note on ChartRefs.bloomRef in
+   HeroSection.tsx. The whole HUD overlay re-rasterises every frame, so a
+   filter over per-frame geometry was being re-evaluated every frame. */
+.chart-path-bloom {
+  opacity: 0.3;
+  transition: stroke 0.35s ease;
+}
+
+/* Current level projected to the right edge, so the newest reading has
+   somewhere to be read against while the line is still short. */
+.chart-level {
+  stroke-dasharray: 2 3;
+  opacity: 0.45;
+}
+
+/* Vertical marker on the ply being searched. */
+.chart-head {
+  stroke: rgba(186, 232, 248, 0.32);
+}
+
+.chart-dot {
+  transition: fill 0.35s ease;
+}
+
+.chart-dot-bloom {
+  opacity: 0.34;
+  transition: fill 0.35s ease;
+}
+
+.chart-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2px;
+  font-size: clamp(7px, 0.52cqw, 9px);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(163, 205, 220, 0.34);
+}
+
+.chart-axis i {
+  font-style: normal;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Board → panel connection beams                                         */
+/* ---------------------------------------------------------------------- */
+
+/* Above the mist (z-index 7) and the vignette (6) but below the copy (9),
+   so the beams read as light in front of the scene. viewBox is the art
+   frame's own pixel size, so no scaling distortion. */
+.hero-holo-links {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  fill: none;
+}
+
+/* Wide, soft pass under the line — the beam's spill.
+
+   Nothing in this overlay uses a `filter` any more, and that is a
+   performance decision rather than a stylistic one. SVG content is not
+   composited per element in Chrome, so the continuous animations in here
+   (the dash flow, the anchor's spin/ping/lock) re-rasterise the whole
+   full-viewport overlay every frame — and every filter inside it is
+   re-evaluated with it. Measured against a scroll, the glows alone were
+   costing a full frame. Stacked wide/translucent strokes give the same
+   bloom for a fraction of the cost. */
+.holo-link-beam {
+  stroke: rgba(126, 208, 244, 0.1);
+  stroke-width: 9;
+}
+
+.holo-link-base {
+  stroke: rgba(150, 222, 246, 0.38);
+  stroke-width: 1;
+}
+
+/* Second, wider pass of the base line — stands in for its drop-shadow. */
+.holo-link-base-glow {
+  stroke: rgba(110, 200, 240, 0.16);
+  stroke-width: 3.5;
+}
+
+/* Data packets travelling board → panel. pathLength="100" normalises every
+   beam, so the dash pattern and its speed are identical on all three
+   regardless of how long each line actually is. */
+.holo-link-flow,
+.holo-link-flow-glow {
+  stroke-linecap: round;
+  stroke-dasharray: 4 46;
+  animation: holo-link-flow 2.7s linear infinite;
+}
+
+.holo-link-flow {
+  stroke: rgba(216, 248, 255, 0.95);
+  stroke-width: 1.6;
+}
+
+/* The packet's halo: same dash, same clock, wider and translucent. */
+.holo-link-flow-glow {
+  stroke: rgba(170, 234, 255, 0.32);
+  stroke-width: 5.5;
+}
+
+@keyframes holo-link-flow {
+  from {
+    stroke-dashoffset: 50;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.holo-link-dock {
+  fill: #dcf8ff;
+}
+
+/* Halo around the dock point, drawn instead of filtered. */
+.holo-link-dock-glow {
+  fill: rgba(180, 238, 255, 0.3);
+}
+
+.holo-link-dock-ring {
+  stroke: rgba(170, 230, 250, 0.4);
+  stroke-width: 1;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: holo-dock-breathe 2.6s ease-in-out infinite;
+}
+
+@keyframes holo-dock-breathe {
+  0%,
+  100% {
+    transform: scale(0.82);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+}
+
+/* Target lock on the lit piece: fixed ring, slow dashed sweep, expanding
+   ping, and framing brackets. */
+.holo-anchor-core {
+  fill: #eafcff;
+}
+
+.holo-anchor-core-glow {
+  fill: rgba(200, 246, 255, 0.28);
+}
+
+.holo-anchor-ring {
+  stroke: rgba(196, 242, 255, 0.6);
+  stroke-width: 1;
+}
+
+.holo-anchor-dash {
+  stroke: rgba(176, 232, 252, 0.4);
+  stroke-width: 1;
+  stroke-dasharray: 3 6;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: holo-anchor-spin 11s linear infinite;
+}
+
+@keyframes holo-anchor-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.holo-anchor-pulse {
+  stroke: rgba(190, 240, 255, 0.55);
+  stroke-width: 1;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: holo-anchor-ping 2.7s ease-out infinite;
+}
+
+@keyframes holo-anchor-ping {
+  0% {
+    transform: scale(0.45);
+    opacity: 0.9;
+  }
+  70% {
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.9);
+    opacity: 0;
+  }
+}
+
+.holo-anchor-bracket,
+.holo-anchor-bracket-glow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: holo-anchor-lock 4.2s ease-in-out infinite;
+}
+
+.holo-anchor-bracket {
+  stroke: rgba(214, 248, 255, 0.78);
+  stroke-width: 1.4;
+}
+
+.holo-anchor-bracket-glow {
+  stroke: rgba(160, 232, 255, 0.22);
+  stroke-width: 4.5;
+}
+
+@keyframes holo-anchor-lock {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.72;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .holo-panel-inner,
+  .holo-scan,
+  .holo-interlace,
+  .holo-aura,
+  .holo-label::before,
+  .holo-link-flow,
+  .holo-link-dock-ring,
+  .holo-anchor-dash,
+  .holo-anchor-pulse,
+  .holo-anchor-bracket,
+  .holo-anchor-bracket-glow,
+  .holo-link-flow-glow {
+    animation: none;
+  }
+
+  .holo-anchor-pulse {
+    opacity: 0.3;
+  }
+}
+
+/* Below ~700px the cover crop is narrow enough that the three
+   landscape-authored HUD panels no longer fit the visible slice of the
+   artwork sensibly (see HERO_HUD_MIN_WIDTH in HeroSection.tsx) — hide them
+   and let the cropped illustration + cloud fog stand on their own. */
+@media (max-width: 700px) {
+  .holo-panel,
+  .hero-holo-links {
+    display: none;
+  }
+}
+
+
+/* Premium marketing composition */
+.hero-section {
+  width: 100%;
+  height: auto;
+  min-height: max(760px, 100dvh);
+  color: #f4f8fb;
+  background: #030710;
+  font-family: var(--sans, "Segoe UI Variable", "Segoe UI", sans-serif);
+}
+
+.hero-atmosphere {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(3, 7, 16, 0.97) 0%, rgba(3, 7, 16, 0.82) 24%, rgba(3, 7, 16, 0.28) 48%, rgba(3, 7, 16, 0.03) 72%),
+    linear-gradient(180deg, rgba(3, 7, 16, 0.78) 0%, transparent 20%, transparent 68%, rgba(3, 7, 16, 0.78) 100%),
+    radial-gradient(circle at 18% 48%, rgba(53, 150, 190, 0.08), transparent 34%);
+}
+
+.hero-atmosphere::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.16;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.19'/%3E%3C/svg%3E");
+  mix-blend-mode: soft-light;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Header — wordmark, nav, auth                                           */
+/* ---------------------------------------------------------------------- */
+
+/* Registered so the angle can be *interpolated*. A plain custom property is
+   a string as far as animation is concerned, so `@keyframes { to { --a: 360deg } }`
+   would jump from 0 to 360 in one step. Declaring the syntax is what makes the
+   browser tween it — and it tweens it off the main thread, on the compositor's
+   property list, rather than through a JS tick. */
+@property --edge-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/* Travelling edge light, shared by the nav capsule and both buttons so the
+   header and the CTA read as one lit system rather than three separate
+   treatments.
+ *
+ * How it works: a conic gradient — one narrow bright arc in an otherwise
+ * transparent sweep — is rotated around the element, then clipped to a 1px
+ * ring by compositing two masks and subtracting the inner one. What you see is
+ * a highlight running around the perimeter.
+ *
+ * Why a rotated *gradient* and not a moving dot: the ring is a single paint,
+ * so the effect costs one small repaint per frame on an element that is at
+ * most a few hundred pixels wide. That matters here — this section already has
+ * WebGL fog invalidating the whole composite every frame, which is why the HUD
+ * panels' glows are drawn strokes rather than filters (see EvalChart). The
+ * gradient's angular speed does vary along a wide capsule (faster across the
+ * long edges, slower round the caps); the arc is kept wide so that reads as
+ * easing rather than as stuttering. */
+.hero-nav::before,
+.hero-cta::after,
+.hero-signup::before {
+  content: "";
+  position: absolute;
+  /* Sits just inside the element's own hairline border. Deliberately not
+     inset: -1px (which would land the light exactly *on* the border): the CTA
+     clips its children for the rising fill, so anything outside the border box
+     would be cut off there and the two buttons would disagree. */
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  /* Arc kept narrow on purpose. A capsule is much wider than it is tall, so
+     the angular sweep is wildly non-uniform against arc length: on a 405x56
+     pill roughly 164 degrees of the sweep land on the top edge alone, while
+     each rounded cap gets about 11. A wide arc therefore stretches into a
+     streak covering half the perimeter as it crosses an edge, then snaps to a
+     dot at the caps. At ~56 degrees the highlight still stretches — which is
+     what sells it as light raking across a curved edge — without ever
+     lighting up most of the outline at once. */
+  background: conic-gradient(
+    from var(--edge-angle),
+    transparent 0deg,
+    transparent 62deg,
+    rgba(66, 187, 241, 0.05) 74deg,
+    rgba(126, 218, 250, 0.5) 84deg,
+    rgba(226, 246, 255, 0.95) 90deg,
+    rgba(126, 218, 250, 0.5) 96deg,
+    rgba(66, 187, 241, 0.05) 106deg,
+    transparent 118deg,
+    transparent 360deg
+  );
+  /* Two identical masks: one clipped to the content box, one to the whole
+     border box. Subtracting the first from the second leaves the 1px frame the
+     padding defines. */
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Inter (loaded in index.html) drives the whole hero for a precise,
+   technical, premium tone; the mono is kept only for the HUD readouts. */
+.hero-section {
+  --hero-font: "Inter", var(--sans, system-ui, sans-serif);
+  --hero-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --hero-cyan: #8ad8f0;
+  /* Accent used by the copy column's highlighted words and the rule under
+     the headline. Deliberately a step more saturated (and bluer) than
+     --hero-cyan: at 300-weight type the pale cyan was the right call, but
+     against a 700-weight headline set in pure white the pale tint reads as
+     grey-blue rather than as a highlight. This is the value the reference
+     comp uses for "See" / "grandmaster" and the wordmark's mark. */
+  --hero-accent: #42bbf1;
+  --hero-ink: #04121a;
+}
+
+.hero-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(16px, 3vw, 48px);
+  padding: clamp(18px, 2.1vw, 30px) clamp(22px, 4vw, 64px);
+}
+
+.hero-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  text-decoration: none;
+  line-height: 1;
+  white-space: nowrap;
+  /* Everything in the wordmark inherits this, so a single colour change on
+     hover moves the mark and the type together. Full value: the wordmark and
+     the nav are the page's chrome, and holding them at 0.74 left the header
+     looking half-loaded next to a headline set in white. */
+  color: rgba(255, 255, 255, 0.96);
+  transition: color 0.3s ease;
+}
+
+/* Line-drawn mark: a hairline tile with two filled checker squares. The
+   previous version was a solid cyan-gradient tile with a 14px coloured
+   drop-shadow, which made a 34px logo the third-brightest object in a
+   near-black frame. An outline at 1px reads as chess just as clearly and
+   sits *in* the scene instead of on top of it. */
+/* The mark keeps the accent while the wordmark next to it goes white — the
+   SVG is drawn in currentColor, so overriding it here is enough. Splitting the
+   two is what stops the header from becoming a solid white block: mark and
+   "SEE" carry the colour, "CHES" and the nav carry the value. */
+.hero-logo-mark {
+  display: inline-flex;
+  width: 26px;
+  height: 26px;
+  color: var(--hero-accent);
+  transition: transform 0.4s var(--hero-ease), color 0.3s ease;
+}
+
+.hero-logo-mark svg {
+  width: 100%;
+  height: 100%;
+}
+
+.hero-logo:hover,
+.hero-logo:focus-visible {
+  color: #ffffff;
+  outline: none;
+}
+
+.hero-logo:hover .hero-logo-mark,
+.hero-logo:focus-visible .hero-logo-mark {
+  transform: rotate(-6deg);
+}
+
+/* 800 at up to 25px was shouting next to type that is now 300. Light weight
+   at wide tracking carries the same brand presence through spacing rather
+   than through mass — and small tracked-out caps is the one typographic
+   register the HUD captions already use, so the header and the readouts read
+   as one system. */
+.hero-logo-word {
+  font-family: var(--hero-font);
+  font-weight: 500;
+  font-size: clamp(12.5px, 1.05vw, 14.5px);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: inherit;
+}
+
+/* The "SEE" wordplay, kept but unlit: a flat cyan tint against the white
+   wordmark. The gradient fill plus a 22px cyan bloom was reading as a glowing
+   badge rather than as a word, so this stays a flat colour — just a brighter
+   one, matching the headline's accent now that the ink beside it is white. */
+.logo-see {
+  color: #4ecbfb;
+  transition: color 0.3s ease;
+}
+
+.hero-logo:hover .logo-see,
+.hero-logo:focus-visible .logo-see {
+  color: rgba(186, 233, 250, 1);
+}
+
+/* Frosted pill holding the nav, back as a real container — the links needed
+   something to sit in so the header reads as three grouped objects rather
+   than eight loose words. Kept quieter than the original: the border is a
+   hairline, the fill is dark rather than lit, and the glow is an outer bloom
+   at low alpha so the capsule's edge catches light without becoming a bright
+   shape of its own. */
+.hero-nav {
+  position: relative;
+  /* The capsule owns its stacking context, so the travelling edge light and
+     the links have a predictable paint order against the pill's own background
+     instead of depending on where they sit in the document. */
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: clamp(2px, 0.4vw, 6px);
+  padding: 6px clamp(6px, 0.7vw, 10px);
+  border-radius: 999px;
+  background: rgba(8, 19, 28, 0.4);
+  border: 1px solid rgba(150, 214, 236, 0.16);
+  backdrop-filter: blur(12px) saturate(115%);
+  -webkit-backdrop-filter: blur(12px) saturate(115%);
+  box-shadow:
+    inset 0 1px rgba(198, 236, 250, 0.07),
+    0 0 0 1px rgba(120, 200, 228, 0.04),
+    0 0 18px rgba(96, 186, 222, 0.1),
+    0 8px 24px rgba(0, 4, 10, 0.36);
+}
+
+/* One slow lap. Long enough that it reads as the scene's light moving across
+   the capsule rather than as a loading indicator, which is the line between
+   this feeling expensive and feeling busy. */
+.hero-nav::before {
+  z-index: 0;
+  animation: edge-travel 7s linear infinite;
+}
+
+/* Soft bloom that follows the same arc one step outside the ring, so the
+   highlight looks like it is lighting the air around the edge instead of being
+   a hairline switching on. Thicker, dimmer, and blurred by being spread over
+   3px rather than by a filter — a filter on geometry that changes every frame
+   is the one thing this section cannot afford. */
+.hero-nav::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: -2px;
+  padding: 3px;
+  border-radius: inherit;
+  /* A little wider than the core arc above, so the bloom leads and trails the
+     highlight instead of ending exactly where it does. */
+  background: conic-gradient(
+    from var(--edge-angle),
+    transparent 0deg,
+    transparent 48deg,
+    rgba(66, 187, 241, 0.07) 68deg,
+    rgba(110, 206, 244, 0.28) 90deg,
+    rgba(66, 187, 241, 0.07) 112deg,
+    transparent 132deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: edge-travel 7s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes edge-travel {
+  to {
+    --edge-angle: 360deg;
+  }
+}
+
+.hero-nav a {
+  position: relative;
+  /* Above both rings, which paint at z-index 0 on the capsule. */
+  z-index: 1;
+  font-family: var(--hero-font);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.96);
+  text-decoration: none;
+  padding: 8px 12px;
+  transition: color 0.26s ease;
+}
+
+/* Hairline that wipes in from the left — the interaction is the line
+   drawing, not a filled chip appearing under the cursor. Held clear of the
+   pill's own inner edge so the two rules never read as one thick border. */
+.hero-nav a::after {
+  content: "";
+  position: absolute;
+  left: 11px;
+  right: 11px;
+  bottom: 5px;
+  height: 1px;
+  background: rgba(160, 216, 236, 0.6);
+  box-shadow: 0 0 8px rgba(140, 210, 236, 0.5);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.34s var(--hero-ease);
+}
+
+.hero-nav a:hover,
+.hero-nav a:focus-visible {
+  color: #ffffff;
+  outline: none;
+}
+
+.hero-nav a:hover::after,
+.hero-nav a:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.hero-auth {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1.2vw, 18px);
+}
+
+.hero-login {
+  position: relative;
+  font-family: var(--hero-font);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  /* Held a clear step under the nav's white: it is the secondary of the two
+     auth actions, and in the reference it is the one piece of header type that
+     is not at full value. */
+  color: rgba(198, 214, 222, 0.82);
+  text-decoration: none;
+  padding: 8px 4px;
+  transition: color 0.26s ease;
+}
+
+/* The same drawn hairline the nav links use. Login was the one interactive
+   piece of type in the header with no response of its own beyond a colour
+   shift, which made it read as a label rather than as a link. */
+.hero-login::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  bottom: 2px;
+  height: 1px;
+  background: rgba(160, 216, 236, 0.6);
+  box-shadow: 0 0 8px rgba(140, 210, 236, 0.5);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.34s var(--hero-ease);
+}
+
+.hero-login:hover,
+.hero-login:focus-visible {
+  color: rgba(238, 248, 252, 0.96);
+  outline: none;
+}
+
+.hero-login:hover::after,
+.hero-login:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* One hairline capsule, no fill and no glass. The two-layer gradient border
+   plus a backdrop blur was building a lit object in the darkest corner of the
+   frame; a single 1px rule states "button" perfectly well, and the header now
+   has exactly one bordered shape in it — this one. */
+.hero-signup {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--hero-font);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.94);
+  text-decoration: none;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(112, 198, 238, 0.4);
+  background: rgba(6, 16, 24, 0.24);
+  /* Border glow plus a grounding shadow: the edge is lit from both sides — a
+     hairline of light just inside it and a soft cyan bloom spilling outward —
+     and the dark drop underneath is what lifts the capsule off the scene
+     instead of leaving it pasted flat onto it. Same recipe as the HUD panels'
+     aura, so the button reads as part of the same lit system. */
+  box-shadow:
+    inset 0 0 0 1px rgba(176, 226, 246, 0.06),
+    inset 0 1px rgba(214, 244, 255, 0.16),
+    0 0 12px rgba(104, 194, 230, 0.16),
+    0 0 26px rgba(74, 168, 208, 0.1),
+    0 6px 18px rgba(0, 5, 12, 0.4);
+  transition: border-color 0.3s ease, color 0.3s ease,
+    background-color 0.3s ease, box-shadow 0.3s ease, transform 0.28s var(--hero-ease);
+}
+
+/* The travelling edge light runs on hover only. On the nav capsule it is
+   ambient; here it is the button's answer to being pointed at, so it starts
+   from wherever the sweep happens to be and laps faster. */
+.hero-signup::before {
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.hero-signup > * {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-signup svg {
+  width: 13px;
+  height: 13px;
+  transition: transform 0.3s var(--hero-ease);
+}
+
+.hero-signup:hover,
+.hero-signup:focus-visible {
+  color: rgba(244, 252, 255, 1);
+  border-color: rgba(190, 232, 248, 0.55);
+  background: rgba(12, 28, 38, 0.34);
+  /* Lifted a hair on hover, with the drop growing to match — the movement and
+     the shadow have to agree or the button reads as sliding rather than
+     rising. */
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 0 0 1px rgba(190, 234, 250, 0.1),
+    inset 0 1px rgba(214, 244, 255, 0.22),
+    0 0 18px rgba(120, 208, 240, 0.3),
+    0 0 40px rgba(84, 178, 216, 0.18),
+    0 10px 24px rgba(0, 5, 12, 0.46);
+  outline: none;
+}
+
+.hero-signup:hover::before,
+.hero-signup:focus-visible::before {
+  opacity: 1;
+  animation: edge-travel 2.6s linear infinite;
+}
+
+.hero-signup:hover svg,
+.hero-signup:focus-visible svg {
+  transform: translateX(3px);
+}
+
+.hero-signup:active {
+  background: rgba(6, 16, 24, 0.4);
+  transform: translateY(0);
+  box-shadow:
+    inset 0 0 0 1px rgba(190, 234, 250, 0.1),
+    inset 0 1px rgba(214, 244, 255, 0.16),
+    0 0 14px rgba(120, 208, 240, 0.22),
+    0 3px 10px rgba(0, 5, 12, 0.4);
+}
+
+/* Keyboard focus needs a mark of its own. Every :focus-visible rule in this
+   file drops the UA outline in favour of a colour change or a drawn hairline,
+   and against artwork this dark neither is a strong enough indicator on its
+   own. Scoped to the section and written with the descendant selector on
+   purpose: that gives it enough specificity to land over the `outline: none`
+   declarations further down the file without having to unpick each one. */
+.hero-section a:focus-visible {
+  outline: 2px solid rgba(126, 214, 248, 0.78);
+  outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Hero copy — badge, headline, subtitle, CTA, trust row                  */
+/* ---------------------------------------------------------------------- */
+
+.hero-layout {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  display: flex;
+  align-items: center;
+  padding: 0 clamp(24px, 5vw, 88px);
+  pointer-events: none;
+}
+
+/* Copy sits in the darkened left third that .hero-atmosphere paints, so it
+   stays legible over the scene while the lit board reads on the right. */
+.hero-copy {
+  position: relative;
+  max-width: min(580px, 47vw);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(20px, 2vw, 30px);
+  pointer-events: auto;
+}
+
+/* Ambient light blob behind the copy — a slow, cinematic glow that gives the
+   headline depth without a hard panel. Sits behind the text content. */
+.hero-copy::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -14%;
+  top: -18%;
+  width: 130%;
+  height: 150%;
+  /* Halved. With the type this much calmer, the old 0.22 blob was visible as
+     a blue wash *around* the copy rather than as depth behind it. */
+  background:
+    radial-gradient(42% 40% at 30% 34%, rgba(60, 140, 186, 0.12), transparent 70%),
+    radial-gradient(46% 42% at 58% 70%, rgba(90, 178, 214, 0.07), transparent 72%);
+  filter: blur(26px);
+  pointer-events: none;
+  animation: hero-glow-drift 12s ease-in-out infinite;
+}
+
+@keyframes hero-glow-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translate3d(3%, -3%, 0) scale(1.06);
+    opacity: 1;
+  }
+}
+
+/* Bold, and set in full white. The previous 300/0.62-alpha treatment was
+   built to stay under the artwork's brightness, and it did — so far under it
+   that the headline read as a watermark rather than as the first thing on the
+   page. The promise now carries its own weight and the accent words do the
+   pointing, which is what the reference comp asks for; the scene stays
+   readable because everything *around* the copy is still held down (see
+   .hero-atmosphere and the subtitle's own value below).
+
+   Note the weight has to be one Inter actually ships in index.html
+   (300/400/500/600/700/800) — an in-between value like 560 is not
+   interpolated from a static family, it just snaps to 600.
+
+   The size cap goes up with the weight: at 700 the same 68px felt smaller
+   than it measured next to the artwork, and 80px is the size the three-line
+   break in the reference is set at. Line-height and tracking are unchanged,
+   so the block's rhythm is the one already tuned against the scene. */
+.hero-title {
+  position: relative;
+  margin: 0;
+  font-family: var(--hero-font);
+  font-weight: 700;
+  font-size: clamp(40px, 4.7vw, 80px);
+  line-height: 1.14;
+  letter-spacing: -0.021em;
+  color: #ffffff;
+  /* Contact shadow only — enough to keep the white off the lighter patches
+     of mist without putting a halo around the type. */
+  text-shadow: 0 2px 26px rgba(0, 6, 12, 0.62);
+}
+
+.hero-title-line {
+  display: block;
+}
+
+/* Mask each headline line rises out of on load. The padding/negative-margin
+   pair gives the hairline under "grandmaster" (and any descender) room inside
+   the clip without changing the block's height, so line spacing is identical
+   to an unmasked headline. */
+.hero-title-line-mask {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.18em;
+  margin-bottom: -0.18em;
+}
+
+/* Wrapper the copy spotlight is measured and masked against: the headline and
+   subtitle in one relatively-positioned block, with the lit duplicate as its
+   last child. The gap matches .hero-copy's own so the visual rhythm of the
+   column is unchanged by the extra nesting. */
+.hero-copy-text {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(18px, 1.8vw, 26px);
+}
+
+/* Pointer-lit duplicate of the whole copy block, stacked exactly over the base
+   text and revealed through a soft radial hole that follows the cursor. The
+   copy is dim until you approach it, then lights up under your pointer like
+   the board does — the same gesture the artwork's hover reveal already uses,
+   so the words answer to the same interaction as the scene.
+
+   Headline and subtitle share this one layer, which is what lets the light
+   travel between them instead of ending at the paragraph's top edge. It
+   inherits its box from .hero-copy-text (inset: 0) and repeats that element's
+   flex column, so both texts wrap and sit exactly where the base copy does.
+
+   --sx/--sy are written from HeroSection.tsx on a rAF tick. Only this layer
+   repaints (the base text underneath never changes), which is why the mask can
+   be a moving gradient here rather than needing the fixed-mask +
+   counter-transform dance the full-viewport art reveal uses. */
+.hero-copy-lit {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(18px, 1.8vw, 26px);
+  opacity: 0;
+  pointer-events: none;
+  /* Full value plus a whisper of cool bloom. The gap between this and the
+     base ink above is the whole effect, so it has to be a real step — at
+     0.96 against 0.68 the light was technically moving and visually absent. */
+  color: #ffffff;
+  /* Now that the base copy is already white, the step this layer adds is a
+     bloom rather than a jump in value: the words the cursor is over pick up a
+     cool halo (and the accent words brighten — see .hero-copy-lit .hero-see
+     above). Same gesture as before, carried by light instead of by opacity. */
+  text-shadow:
+    0 1px 22px rgba(0, 6, 12, 0.5),
+    0 0 12px rgba(168, 226, 248, 0.34),
+    0 0 34px rgba(130, 204, 240, 0.3);
+  transition: opacity 0.42s ease;
+  -webkit-mask-image: radial-gradient(
+    circle 175px at var(--sx, -600px) var(--sy, -600px),
+    #000 0%,
+    #000 22%,
+    rgba(0, 0, 0, 0.72) 46%,
+    rgba(0, 0, 0, 0.28) 72%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    circle 175px at var(--sx, -600px) var(--sy, -600px),
+    #000 0%,
+    #000 22%,
+    rgba(0, 0, 0, 0.72) 46%,
+    rgba(0, 0, 0, 0.28) 72%,
+    transparent 100%
+  );
+}
+
+/* Both texts drop their own (deliberately dim) colour inside the lit layer and
+   take the bright one from it, so there is a single place that defines what
+   "lit" means. */
+.hero-copy-lit .hero-title,
+.hero-copy-lit .hero-subtitle {
+  color: inherit;
+}
+
+/* The headline's own "See" echoes the logo's SEE, so the brand and its
+   promise share the same word. Same weight as its line — the accent is
+   carried by colour alone, so the sentence still reads as one sentence
+   rather than as a highlighted word glued into a grey one. */
+.hero-see {
+  position: relative;
+  font-style: normal;
+  font-weight: inherit;
+  color: var(--hero-accent);
+}
+
+/* "grandmaster" — the payoff word — takes the same accent as "See", so the
+   two ends of the headline bracket the white middle. This replaces the
+   hairline that used to be drawn under it: with the type at 700 the underline
+   read as a stray artifact against the letterforms, and the standalone
+   .hero-rule below the block now does that job with room to breathe. */
+.hero-title-accent {
+  position: relative;
+  color: var(--hero-accent);
+}
+
+/* Both accents brighten a step inside the pointer-lit layer, which is what
+   keeps the copy spotlight legible now that the base copy is already at full
+   value (see .hero-copy-lit). */
+.hero-copy-lit .hero-see,
+.hero-copy-lit .hero-title-accent {
+  color: #8fdcff;
+}
+
+/* Accent rule between the headline and the support copy: a short gradient
+   hairline that draws itself in on load. It marks the end of the headline
+   block and gives the two text sizes something to hinge on, instead of the
+   paragraph starting straight off the bottom of an 80px word. */
+.hero-rule {
+  /* ~11% of the viewport, which is the proportion the rule holds against the
+     headline block in the reference at any width, capped so it never runs past
+     the copy column on a wide display. */
+  width: clamp(110px, 11vw, 190px);
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    rgba(118, 220, 250, 0.95) 0%,
+    rgba(66, 187, 241, 0.62) 34%,
+    rgba(66, 187, 241, 0) 100%
+  );
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: hero-rule-draw 1.1s var(--hero-ease) 1.15s forwards;
+}
+
+/* The lit duplicate carries its own copy of the rule purely to hold the
+   space: the duplicate is a flex column that has to wrap and stack exactly
+   like the base copy, so removing the element (rather than just hiding it)
+   would pull the duplicated paragraph up out of registration with the real
+   one. Painted at zero opacity, not `display: none`, for that reason. */
+.hero-copy-lit .hero-rule {
+  opacity: 0;
+}
+
+@keyframes hero-rule-draw {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.hero-subtitle {
+  margin: 0;
+  max-width: 42ch;
+  font-family: var(--hero-font);
+  font-size: clamp(15px, 1.12vw, 16.5px);
+  font-weight: 400;
+  line-height: 1.74;
+  letter-spacing: 0.008em;
+  /* Still a clear step below the headline's white — that hierarchy is the
+     point — but at readable value now. The old 0.6 alpha was tuned against a
+     headline that was itself dimmed; against white type it left the support
+     copy looking switched off rather than secondary. */
+  color: rgba(212, 226, 235, 0.85);
+  text-shadow: 0 1px 18px rgba(0, 6, 12, 0.55);
+}
+
+/* Deliberately a different reveal from the headline's. The headline is lit by
+   where your cursor *is*; the subtitle comes into focus on its own, word by
+   word, blurred and lifted at the start of the tween and settling into place
+   (see the word stagger in HeroSection.tsx) — the reading equivalent of an
+   image resolving. Two spotlights would have read as one effect applied
+   twice; a focus-pull and a spotlight read as two separate ideas.
+
+   inline-block is what makes the per-word transform possible; the spaces
+   between words are real text nodes in the paragraph, so wrapping and
+   justification are unchanged. */
+.hero-subtitle-word {
+  display: inline-block;
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 1.8vw, 26px);
+  margin-top: 10px;
+}
+
+/* Primary CTA. The element itself is transform-driven by the magnetic
+   pointer effect (GSAP x/y), so all *visual* hover state lives on the inner
+   layer and box-shadow — never a transform on this element, to avoid
+   fighting the magnet. */
+/* One hairline capsule, matching the header's Sign up at a larger size, so
+   the whole hero has a single button language. The gradient border + glass +
+   drop shadow stack it replaces was three treatments doing one job, and the
+   backdrop-filter had to re-blur the artwork behind it on every frame of the
+   WebGL fog. The interaction moved into the fill sweep below, which is the
+   part that actually reads as a response. */
+.hero-cta {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  border-radius: 999px;
+  text-decoration: none;
+  overflow: hidden;
+  border: 1px solid rgba(112, 198, 238, 0.46);
+  background: rgba(6, 16, 24, 0.26);
+  /* Same lit edge as the header button, one step stronger — this is the
+     primary action, so its border carries a little more light at rest and
+     opens up considerably on hover. The dark drop at the end is doing the
+     premium work: it is what makes the capsule sit *above* the scene with air
+     under it rather than looking cut into the artwork. */
+  box-shadow:
+    inset 0 0 0 1px rgba(176, 226, 246, 0.07),
+    inset 0 1px rgba(214, 244, 255, 0.18),
+    inset 0 -1px rgba(66, 187, 241, 0.1),
+    0 0 14px rgba(104, 194, 230, 0.2),
+    0 0 34px rgba(74, 168, 208, 0.12),
+    0 12px 30px rgba(0, 5, 12, 0.44);
+  transition: border-color 0.34s ease, background-color 0.34s ease,
+    box-shadow 0.34s ease;
+  will-change: transform;
+}
+
+/* The travelling edge light. On the primary action it never stops — it just
+   runs dim, so the button always has some life in it — and comes up to full
+   value on hover.
+ *
+ * Only the opacity changes, and the lap time stays fixed on purpose: altering
+ * animation-duration mid-flight remaps the elapsed time onto the new duration,
+ * which makes the highlight jump to a different point on the capsule. Fading
+ * the same continuous sweep up is the response that actually reads as the edge
+ * catching more light.
+ *
+ * z-index 0 keeps it above the rising fill (::before) and below the label
+ * (.hero-cta-inner, z-index 1). */
+.hero-cta::after {
+  z-index: 0;
+  opacity: 0.42;
+  animation: edge-travel 6.5s linear infinite;
+  transition: opacity 0.34s ease;
+}
+
+.hero-cta:hover::after,
+.hero-cta:focus-visible::after {
+  opacity: 1;
+}
+
+/* The response: a faint wash rises from the bottom edge to fill the capsule
+   on hover, instead of a specular sheen flashing across it. */
+.hero-cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(138, 216, 240, 0.03) 0%,
+    rgba(138, 216, 240, 0.12) 100%
+  );
+  transform: translateY(101%);
+  transition: transform 0.46s var(--hero-ease);
+}
+
+.hero-cta-inner {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 17px 30px;
+  border-radius: 999px;
+  font-family: var(--hero-font);
+  /* Tracked caps, one step up in size and value from the header's Sign up so
+     the primary action reads as the primary action. Sentence case at this
+     scale would add a third block of large type to the column; caps at 13px
+     state the label without competing with the headline. */
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #ffffff;
+  transition: transform 0.18s var(--hero-ease), color 0.3s ease;
+}
+
+.hero-cta:hover,
+.hero-cta:focus-visible {
+  border-color: rgba(198, 238, 252, 0.62);
+  box-shadow:
+    inset 0 0 0 1px rgba(196, 236, 252, 0.12),
+    inset 0 1px rgba(222, 246, 255, 0.26),
+    inset 0 -1px rgba(66, 187, 241, 0.16),
+    0 0 22px rgba(126, 210, 242, 0.34),
+    0 0 52px rgba(84, 178, 216, 0.2),
+    0 16px 38px rgba(0, 5, 12, 0.5);
+}
+
+.hero-cta:hover::before,
+.hero-cta:focus-visible::before {
+  transform: translateY(0);
+}
+
+.hero-cta:hover .hero-cta-inner,
+.hero-cta:focus-visible .hero-cta-inner {
+  color: rgba(246, 253, 255, 1);
+}
+
+.hero-cta:active .hero-cta-inner {
+  transform: scale(0.98);
+}
+
+.hero-cta-arrow {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.3s var(--hero-ease);
+}
+
+.hero-cta:hover .hero-cta-arrow,
+.hero-cta:focus-visible .hero-cta-arrow {
+  transform: translateX(4px);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Scroll cue                                                             */
+/* ---------------------------------------------------------------------- */
+
+/* Bottom-centred hint, and a real link to the first section. Centred with
+   left/right + justify-content rather than translateX(-50%) on purpose: this
+   element is in the header/copy entrance stagger (.hero-anim), and GSAP drives
+   that with its own transform — a centring transform here would be overwritten
+   the moment the tween touched it. */
+.hero-scroll-cue {
+  position: absolute;
+  left: 0;
+  right: 0;
+  /* Offset from the section's bottom edge, not the viewport's. The two are not
+     always the same number: the section is sized in svh, which some browsers
+     resolve a little taller than the currently visible height, so anything
+     parked tight against the bottom can end up just under the fold. This
+     clearance keeps the cue on screen in that case and still reads as
+     bottom-anchored when they do agree. */
+  bottom: clamp(22px, 5.2vh, 46px);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  pointer-events: auto;
+  color: rgba(236, 245, 250, 0.88);
+  transition: color 0.3s ease;
+}
+
+.hero-scroll-label {
+  font-family: var(--hero-font);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  /* Tracking is applied after the last letter too, which pushes the visible
+     word off-centre by half of it. Pulling the block back by the same amount
+     puts the *word* on the centre line rather than the word plus its trailing
+     space. */
+  text-indent: 0.3em;
+  text-transform: uppercase;
+  color: inherit;
+  text-shadow: 0 1px 14px rgba(0, 6, 12, 0.72);
+}
+
+/* Hairline capsule the arrow travels inside — same border language as the CTA
+   and the header's Sign up, at the smallest size in that family. */
+.hero-scroll-well {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 23px;
+  height: 35px;
+  border-radius: 999px;
+  border: 1px solid rgba(140, 208, 234, 0.32);
+  box-shadow:
+    inset 0 0 0 1px rgba(176, 226, 246, 0.05),
+    0 0 14px rgba(90, 180, 220, 0.14);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hero-scroll-well svg {
+  width: 13px;
+  height: 13px;
+  animation: hero-scroll-bob 2.2s var(--hero-ease) infinite;
+}
+
+/* The arrow falls inside the capsule and fades at each end of the travel, so
+   the cue reads as movement downward rather than as a blinking icon. */
+@keyframes hero-scroll-bob {
+  0%,
+  100% {
+    transform: translateY(-2.5px);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(2.5px);
+    opacity: 1;
+  }
+}
+
+.hero-scroll-cue:hover,
+.hero-scroll-cue:focus-visible {
+  color: #ffffff;
+  outline: none;
+}
+
+.hero-scroll-cue:hover .hero-scroll-well,
+.hero-scroll-cue:focus-visible .hero-scroll-well {
+  border-color: rgba(112, 198, 238, 0.6);
+  box-shadow:
+    inset 0 0 0 1px rgba(196, 236, 252, 0.1),
+    0 0 20px rgba(112, 198, 238, 0.28);
+}
+
+/* Tablet / narrow desktop: pull the copy back a touch. */
+@media (max-width: 1100px) {
+  .hero-copy {
+    max-width: min(540px, 64vw);
+  }
+}
+
+@media (max-width: 860px) {
+  .hero-nav {
+    display: none;
+  }
+}
+
+/* Mobile: the artwork is heavily cropped and the HUD panels hide, so the
+   copy takes the stage — anchored lower over a darker scene. */
+@media (max-width: 700px) {
+  .hero-header {
+    padding: 16px 20px;
+  }
+
+  .hero-signup {
+    padding: 9px 14px;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+  }
+
+  .hero-layout {
+    align-items: flex-end;
+    padding: 0 22px clamp(56px, 14vh, 110px);
+  }
+
+  .hero-copy {
+    max-width: 100%;
+    gap: 18px;
+  }
+
+  .hero-subtitle {
+    font-size: 14.5px;
+  }
+
+  .hero-actions {
+    flex-wrap: wrap;
+  }
+
+  .hero-cta-inner {
+    padding: 15px 26px;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+  }
+
+  /* The copy is anchored to the bottom of the frame at this width, so the cue
+     would sit on top of the CTA. The gesture is also the obvious one on a
+     touch device. */
+  .hero-scroll-cue {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-copy::before {
+    animation: none;
+  }
+
+  /* The accent rule still ends up drawn — it just arrives already drawn
+     instead of wiping in. */
+  .hero-rule {
+    animation: none;
+    transform: scaleX(1);
+  }
+
+  /* Same for the scroll cue: the arrow is still there, it just doesn't
+     travel. */
+  .hero-scroll-well svg {
+    animation: none;
+    opacity: 0.85;
+    transform: none;
+  }
+
+  /* The travelling edge lights stop and park at a fixed angle, so the nav
+     capsule and the buttons keep the lit-edge look without anything moving. */
+  .hero-nav::before,
+  .hero-nav::after,
+  .hero-cta::after,
+  .hero-signup::before,
+  .hero-signup:hover::before,
+  .hero-signup:focus-visible::before {
+    animation: none;
+    --edge-angle: 300deg;
+  }
+
+  .hero-nav a,
+  .hero-nav a::after,
+  .hero-cta::before,
+  .hero-cta::after,
+  .hero-cta-arrow,
+  .hero-signup,
+  .hero-signup::before,
+  .hero-signup svg,
+  .hero-login::after,
+  .hero-logo,
+  .hero-logo-mark,
+  .hero-scroll-cue,
+  .hero-scroll-well,
+  .hero-cta {
+    transition: none;
+  }
+
+  /* No lift on hover either — the shadow change alone still reads as a
+     response. */
+  .hero-signup:hover,
+  .hero-signup:focus-visible {
+    transform: none;
+  }
+}
+
+/* Touch devices have no cursor to light the copy with, so the pointer-lit
+   duplicate is dropped entirely — it can never be revealed there, and leaving
+   it in the tree means a second full copy of the headline and paragraph being
+   laid out for nothing. No colour overrides any more: the base copy is now at
+   full value on its own, so there is nothing for the spotlight to have been
+   compensating for. */
+@media (hover: none), (pointer: coarse) {
+  .hero-copy-lit {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .hero-section {
+    min-height: max(720px, 100dvh);
+  }
+
+  .hero-atmosphere {
+    background:
+      linear-gradient(180deg, rgba(3, 7, 16, 0.62) 0%, rgba(3, 7, 16, 0.16) 24%, rgba(3, 7, 16, 0.56) 56%, rgba(3, 7, 16, 0.98) 82%),
+      linear-gradient(90deg, rgba(3, 7, 16, 0.5), rgba(3, 7, 16, 0.12));
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .hero-reveal-glow {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Bottom dissolve — artwork → dark tail → cloud curtain                  */
+/* ---------------------------------------------------------------------- */
+
+/* One deep tone shared by the hero fill, the fade's end stop, the tail and
+   .features-stage, so none of those four surfaces can show an edge against
+   the next. It's hero-bg's own sampled corner colour (rgb(0,1,6)). */
+.hero-section {
+  background: #000106;
+}
+
+/* Feathers the bottom of the frame into that colour. The falloff starts
+   below the board anchor (y≈0.71 of the frame) so the lit subject keeps its
+   contrast, and reaches solid at 96% — the last few pixels are a flat band,
+   so no rounding of the section's height can leave a hairline of artwork
+   showing at the edge. On its own this can only ever be a straight
+   horizontal ramp; .hero-tail-mist is what stops it reading as a flat cut. */
+.hero-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: clamp(170px, 30%, 380px);
+  /* Above the artwork (2), the mist (7) and the beams (8) — DOM order
+     breaks the tie with the beams — but below .hero-layout (9). */
+  z-index: 8;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 1, 6, 0) 0%,
+    rgba(0, 1, 6, 0.06) 18%,
+    rgba(0, 1, 6, 0.2) 38%,
+    rgba(0, 1, 6, 0.44) 56%,
+    rgba(0, 1, 6, 0.7) 72%,
+    rgba(0, 1, 6, 0.9) 86%,
+    #000106 96%,
+    #000106 100%
+  );
+}
+
+/* The scene's run-out. Long enough that the cloud curtain has a dark band to
+   thicken over instead of arriving on top of the light section it is meant to
+   be hiding. No `overflow: hidden` — the mist inside deliberately reaches up
+   over the hero's bottom edge. */
+.hero-tail {
+  position: relative;
+  z-index: 0;
+  width: 100%;
+  height: clamp(240px, 38svh, 440px);
+  background: #000106;
+}
+
+@media (max-width: 700px) {
+  .hero-fade {
+    height: clamp(140px, 24%, 280px);
+  }
+
+  .hero-tail {
+    height: clamp(190px, 30svh, 320px);
+  }
+}

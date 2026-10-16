@@ -1,0 +1,131 @@
+/* ---------------------------------------------------------------------- */
+/* SpaceField — shared sky for the Why chapter's dive and the pricing stage */
+/* ---------------------------------------------------------------------- */
+
+/* See the header comment in SpaceField.tsx for why this is one module rather
+   than two copies, and why the base tone is flat. In short: the two chapters'
+   skies scroll past each other for about a screen, and any difference between
+   them lands as a horizontal seam. */
+
+:root {
+  /* The one value both chapters' skies, both their run-out bands and the
+     pricing stage's own fill are painted in. Declared globally rather than per
+     section because the whole point is that four surfaces in two components
+     cannot disagree about it.
+
+     Chosen so it is a clear step out of the page's near-black (#000106) —
+     the reader has to register that they have arrived somewhere — while still
+     being dark enough to set a particle headline and four cards of body copy
+     against. */
+  --space-base: #04091a;
+}
+
+.space-field {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--space-base);
+}
+
+/* Nebula, when a chapter asks for it. The mask is the reason this wrapper
+   exists: .space-nebula-a sits 4% from the top under a 100px blur, so without
+   it the mass bleeds onto the field's first row — and that row has to match the
+   bare sky scrolling away above it exactly. Feathered in over the top fifth,
+   and off again at the very bottom for the same reason at the other end. */
+.space-nebulae {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    #000 22%,
+    #000 92%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    #000 22%,
+    #000 92%,
+    transparent 100%
+  );
+}
+
+.space-nebula {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+}
+
+/* Deliberately unequal in size and opposite in hue, so the field has a
+   direction to it rather than reading as evenly lit haze. Violet and teal: the
+   only two new hues on the page, picked to sit either side of the accent the
+   rest of it is drawn in. */
+.space-nebula-a {
+  left: -18%;
+  top: 4%;
+  width: 62vw;
+  height: 62vw;
+  background: radial-gradient(
+    circle,
+    rgb(108 92 214 / 0.24),
+    rgb(108 92 214 / 0.08) 46%,
+    transparent 72%
+  );
+}
+
+.space-nebula-b {
+  right: -22%;
+  bottom: -12%;
+  width: 68vw;
+  height: 68vw;
+  background: radial-gradient(
+    circle,
+    rgb(42 126 164 / 0.22),
+    rgb(42 126 164 / 0.07) 48%,
+    transparent 74%
+  );
+}
+
+/* ── Three depths of stars ───────────────────────────────────────────────
+   Boxes only. Everything visible inside them is drawn by starFieldEngine.ts —
+   see SpaceField.tsx for why the tiled dot patterns that used to live here are
+   gone, and why these three elements have to stay separate.
+
+   Only ever scaled *up* by the timelines that drive them: a layer at inset 0
+   taken below scale 1 would expose the frame's edge. */
+.space-stars {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+
+/* Sized by the engine at the field's own pixel ratio; the CSS box is 100% of
+   the layer so the chapters' scale transforms magnify it as a whole, which is
+   what makes the dive read as stars coming past the camera. */
+.space-stars__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Depth balance. Per-star brightness and twinkle are the engine's business now;
+   these three values are only the relative weight of the three depths, and they
+   are static because both chapters' timelines animate `transform` on these
+   elements and the field's reveal is an opacity ramp on .space-field, one level
+   up — a per-layer opacity here would be a third party to that. */
+.space-stars-far {
+  opacity: 0.78;
+}
+
+.space-stars-mid {
+  opacity: 0.88;
+}
+
+/* The near field carries the bloom, and it is drawn into the canvas as a glow
+   sprite per star rather than applied as a filter over the layer: a
+   `drop-shadow()` on a full-viewport canvas is a full-viewport blur every
+   frame. */
+.space-stars-near {
+  opacity: 1;
+}

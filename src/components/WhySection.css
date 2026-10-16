@@ -1,0 +1,2415 @@
+/* ---------------------------------------------------------------------- */
+/* Why Chessee? — one pinned fall down a tunnel                            */
+/* ---------------------------------------------------------------------- */
+
+/* Art direction: the same near-black stage the hero runs out into, in the
+   editorial register the light chapter established — the Didone display face
+   and the monospaced label face, so the page reads as having turned a page
+   rather than jumped to a different site.
+
+   One surface now, not two. The chapter is a single pinned stage that the
+   reader falls through: a flat night that breaks apart, a fibre-optic tunnel
+   behind it, the question set as one frame-wide lowercase wordmark with the pawn
+   standing inside it, the pawn then falling into the vanishing point, and the
+   argument's four beats passing in the lower third. The old flowing reading
+   column below the pin is gone, and with it the sticky chapter rail and the
+   pointer-tracked pool of light — see the header comment in WhySection.tsx for
+   what that traded away, and for how the wordmark is built.
+
+   Depth order inside .why-stage, and the whole composition is in it:
+
+     0  .why-board         the chess scene (WebGL), playing from mount
+     1  .why-shatter-box   the night + ambient, shattered; fades off in act 3
+     2  .why-hems          joins, grain, vignette, the scrim under the copy
+     3  .why-title         "why chessee?" — the wordmark's lit plate plus the
+                           specular sweep that rides on it, behind the figure so
+                           the figure occludes both
+     4  .why-beats         the four beats
+     5  .why-figure        the falling pawn (in front of the copy, by brief)
+     6  .why-title-ghost   the same wordmark as a hairline outline, in front of
+                           the figure — the two together are one word cut in
+                           half by z-index; see the header note in the TSX
+     6  .why-rail          the four marks reporting depth
+     8  .why-blackout      a flat fill raised to opacity 1 as the argument
+                           resolves, closing the pin's last frame to a known,
+                           fully dark tone
+     9  .why-threshold     the handover: the tone ramps to the pricing chapter's
+                           sky, that chapter's own star field is revealed from
+                           the bottom of the frame up, and the light on the far
+                           side rises under both — all of it across the screen
+                           the pin spends rolling off the top */
+
+.why-section {
+  /* Local palette. Deliberately not a redefinition of the global tokens: the
+     hero's HUD is tuned against those, so overriding them here would reach back
+     up the page. */
+  --w-ink: #eef7fb;
+  /* Was #a6bdc9. The labels are set in a monospaced face at 12-15px with 0.18em
+     tracking over a lit tunnel, which is the least legible combination on the
+     page — at that size and spacing the old tone measured under 4.5:1 against
+     the scrim and read as disabled rather than quiet. */
+  --w-ink-soft: #cfe2ec;
+  --w-ink-dim: rgba(196, 216, 226, 0.78);
+  /* Reading ink for the beats' body copy. Level with the headline ink rather
+     than a step under it: these four paragraphs *are* the chapter, they are the
+     only long-form copy the reader is asked to take in while the frame is
+     moving, and holding them below the display type to preserve a hierarchy the
+     type sizes already state cost contrast the copy could not spare. */
+  --w-read: #f2f9fc;
+  /* One curve for this chapter's CSS-side motion, matching the Premium
+     personality the scrubbed timelines are tuned at: decelerating, no
+     overshoot. */
+  --w-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --w-line: rgba(155, 216, 237, 0.16);
+  --w-accent: #9bd8ed;
+  --w-gutter: clamp(24px, 6vw, 96px);
+
+  position: relative;
+  /* Same deep tone as the hero fill, .hero-tail and .features-stage, so none of
+     those surfaces can show an edge against the next. */
+  background: #000106;
+  /* Straddles the join with the feature story above: both sections' heights land
+     on fractional device pixels, and the sub-pixel gap between them rendered as
+     a dark hairline across an otherwise seamless handover. The dusk band's first
+     row is the same paper tone the story ends on, so nothing is lost
+     underneath. */
+  margin-top: -1px;
+  /* The pin is inside; keep the section's stacking self-contained so the fog
+     curtain (z-index 60, fixed) still sits cleanly above all of it. */
+  isolation: isolate;
+}
+
+/* Visually hidden, but read: the rail's dots are icons, and a button with no
+   accessible name is a button nobody can use. */
+.why-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Dusk — the light chapter above resolves into this one's near-black       */
+/* ---------------------------------------------------------------------- */
+
+/* The feature story ends on --f-sky-edge (#d7e6ef) and this chapter runs on
+   #000106, so the join is a ramp, not an edge. The first stop is that exact
+   paper tone and the last is the stage's exact base, which is what keeps both
+   boundaries invisible; the stops between follow the page's own blue-teal ink
+   rather than desaturating through grey, so it reads as the light going out of
+   the scene rather than a black panel fading up.
+
+   The band is also the transition itself, not just the colour of one: three
+   layers, all scrubbed as the reader passes through (see the nightfall timeline
+   in WhySection.tsx). A static ramp is seamless without being smooth — the
+   reader crosses most of a screen in which nothing happens, meets a black
+   frame, and only then does the chapter start. */
+.why-dusk {
+  position: relative;
+  z-index: 0;
+  width: 100%;
+  height: clamp(300px, 52svh, 620px);
+  overflow: hidden;
+  background: #000106;
+}
+
+/* How far the night has fallen, 0-1. Registered so it can be interpolated at
+   all: an unregistered custom property is a string to the animation engine, and
+   GSAP would swap "0" for "1" in one frame. */
+@property --why-fall {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+/* First and last stops are pinned: 0% is exactly the paper tone the feature
+   story ends on and 100% is exactly the stage's base. Only the middle stops
+   move, and they move *up* — so the dark rises to meet the reader instead of the
+   whole band cross-fading. */
+.why-dusk-ramp {
+  --why-fall: 0;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    #d7e6ef 0%,
+    #b7cddb calc(15% - var(--why-fall) * 6%),
+    #8aa8ba calc(30% - var(--why-fall) * 11%),
+    #5b7889 calc(46% - var(--why-fall) * 16%),
+    #334b58 calc(62% - var(--why-fall) * 20%),
+    #16262f calc(77% - var(--why-fall) * 22%),
+    #06101a calc(90% - var(--why-fall) * 20%),
+    #000106 100%
+  );
+}
+
+/* The last of the daylight: a wide, low band of light lying across the ramp,
+   which sinks and goes out as the reader passes. Kept well inside the band's own
+   box — a glow reaching either edge would change the tone of a row that has to
+   match the surface beyond it. */
+.why-dusk-light {
+  position: absolute;
+  left: 50%;
+  top: 26%;
+  width: 150%;
+  height: 34%;
+  translate: -50% 0;
+  background: radial-gradient(
+    58% 100% at 50% 50%,
+    rgba(233, 244, 250, 0.7) 0%,
+    rgba(178, 214, 232, 0.34) 34%,
+    rgba(120, 172, 198, 0.12) 62%,
+    rgba(120, 172, 198, 0) 84%
+  );
+  filter: blur(26px);
+  will-change: transform, opacity;
+}
+
+/* The sky arriving. Two dot fields at different scales so it doesn't read as a
+   regular grid, masked out of the top third (there is still daylight there) and
+   off the bottom edge (that row has to stay exactly #000106 for the stage). */
+.why-dusk-stars {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background-image: radial-gradient(
+      rgba(228, 245, 253, 0.55) 1px,
+      transparent 1.4px
+    ),
+    radial-gradient(rgba(174, 214, 234, 0.4) 1px, transparent 1.6px);
+  background-size: 137px 119px, 79px 83px;
+  background-position: 0 0, 41px 57px;
+  mask-image: linear-gradient(
+    180deg,
+    transparent 24%,
+    rgba(0, 0, 0, 0.55) 52%,
+    #000 74%,
+    transparent 96%
+  );
+  will-change: transform, opacity;
+}
+
+/* A long ramp across a wide viewport bands badly on 8-bit displays; the same dot
+   pattern the stage uses breaks it up. Feathered off at both ends, because the
+   pattern lifts the pixels it lands on by a few luma — with it running edge to
+   edge this band's first and last rows were a *texture* while the surfaces
+   either side of them are flat, which is another way of drawing the line the
+   ramp exists to avoid. */
+.why-dusk::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.55;
+  background-image: radial-gradient(
+    rgba(120, 160, 180, 0.07) 1px,
+    transparent 1px
+  );
+  background-size: 3px 3px;
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0,
+    #000 40px,
+    #000 calc(100% - 40px),
+    transparent 100%
+  );
+}
+
+/* ---------------------------------------------------------------------- */
+/* The stage                                                               */
+/* ---------------------------------------------------------------------- */
+
+.why-stage {
+  /* The cursor, as a light. Written here by the timeline (GSAP quickTo) and read
+     by everything that answers the pointer: the night's hole, the wordmark's
+     specular sweep, and the wordmark's parallax. Declared on the stage because
+     it is the closest ancestor the consumers share. Only the "how open" value
+     needs stating; x and y sit at their registered initial 0px until the
+     timeline centres them. */
+  --why-lens-a: 0;
+
+  position: relative;
+  height: 100svh;
+  overflow: hidden;
+  background: #000106;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 0 — the board                                                           */
+/* ---------------------------------------------------------------------- */
+
+/* Full-bleed and always playing while the chapter is on screen (the component
+   parks its own loop otherwise). Nothing here fades it in: what hides it until
+   the descent is the night above it.
+
+   The canvas is transparent — see the note on the renderer in
+   chess/chessScene.js — so the chapter's own base tone, its two drifting glows
+   and its rank grid are all still doing their jobs underneath and around the
+   scene rather than being replaced by a rectangle.
+
+   ── On the mask, which is now almost nothing ──
+   It has been walked back three times and this pass takes it as far as it goes. It
+   began life protecting the frame from a full-bleed *shader* that reached the
+   corners at full brightness; then it held to 82% because the instruments stand at
+   the edges by design; and it is now a whisper over the last 6% because the camera
+   has been pulled in (see the note on the distances in chess/chessScene.js) and the
+   board genuinely fills the frame. A falloff is a statement that the edges of the
+   picture do not matter, and on a layer that *is* the picture that statement is
+   simply false — every unit of falloff was reading as the scene being a texture
+   behind the chapter rather than the scene being the chapter.
+
+   Not removed outright, and the remaining sliver is doing one specific job: the
+   canvas is transparent and it is composited over the stage's own base tone, so a
+   hard end to the layer at the viewport edge puts a visible corner on the frame
+   wherever a lit tile happens to reach it. 94% to 100% is enough to land that edge
+   on nothing without taking any brightness off anything the reader is looking at.
+
+   `pointer-events` off for the usual reason — the pointer is read from the window,
+   and a full-bleed box here would eat every move before the shatter lens underneath
+   saw it. */
+.why-board {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  mask-image: radial-gradient(
+    150% 142% at 50% 48%,
+    #000 0%,
+    #000 94%,
+    rgba(0, 0, 0, 0.86) 98%,
+    rgba(0, 0, 0, 0.62) 100%
+  );
+}
+
+/* ---------------------------------------------------------------------- */
+/* 1 — the night, shattered                                                */
+/* ---------------------------------------------------------------------- */
+
+/* The animated box, and the only thing the act-3 dissolve touches. The effect
+   itself renders inside it, which keeps GSAP off an element that writes its own
+   inline styles — <Shatter> positions three of its own children absolutely and
+   sets their sizes from a ResizeObserver. */
+.why-shatter-box {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  /* The effect's shards are drawn from a texture of this subtree, so the
+     subtree has to be its own compositing context or the capture picks up
+     whatever is painted behind it. */
+  isolation: isolate;
+  will-change: opacity;
+}
+
+.why-ambient {
+  position: absolute;
+  inset: 0;
+}
+
+/* ── The night, and the hole in it ───────────────────────────────────────
+   The one opaque layer on the stage, and therefore the only thing between the
+   reader and the tunnel. Its mask is the reveal:
+
+     --why-lens-x / -y   the pointer, eased (GSAP quickTo, in px)
+     --why-lens-a        how open the hole is, 0-1 — raised while the pointer is
+                         in the frame, dropped when it leaves
+
+   Registered as real lengths and a real number, which is not decoration: GSAP
+   resolves a custom property's unit from its computed value, and if this were
+   declared as `50%` in CSS the first pointer move would write `960%` and throw
+   the hole off the edge of the world. They are left at their registered
+   initial 0px and centred by the timeline instead.
+
+   Inherited, and written on .why-stage rather than here, because the pointer is
+   not the night's private business any more: the wordmark reads the same three
+   numbers to place its specular highlight and its parallax (see .why-title-sheen
+   and .why-title-layer). One cursor, one light, two surfaces responding to it —
+   which is the whole reason the type's interaction was allowed back in after the
+   particle field's pointer repulsion was taken out. Two *independent* pointer
+   reactions on one frame compete; two surfaces lit by one moving light do not.
+
+   The mask is on this element rather than on .why-shatter-box for two reasons.
+   It is a flat fill, so re-rasterising it under a moving mask is cheap — the box
+   contains two 90px blurs and a canvas. And it sits *inside* the shatter's
+   captured content, so where the hole opens the captured alpha goes to zero and
+   the shards fade out around its edge: the lens reads as having caused the
+   opening rather than happening next to it. */
+@property --why-lens-x {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+@property --why-lens-y {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+@property --why-lens-a {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+/* Where the shaft comes down, as an offset from the stage's centre. Written once
+   per refresh by the timeline from the same measurement that places the figure
+   (see titleSeat in the TSX) — the figure stands in the gap between the two words,
+   which is not the middle of the frame, so a shaft hard-centred at 50% lit the
+   empty half of the composition.
+
+   Registered rather than left as a plain custom property for the usual reason: it
+   is consumed inside a `calc()` in a `translate`, and an unregistered property
+   that has never been written is the empty string, which makes the whole
+   declaration invalid and drops the -50% centring with it. Inherited, because the
+   value is set on the stage and the shaft is three levels down inside it (stage →
+   shatter box → ambient), and on a browser with html-in-canvas it is a level
+   deeper again inside the shatter's own subtree. */
+@property --why-shaft-x {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+/* Where the wordmark sits relative to centre. Non-zero only on the narrow frames
+   where the mark stacks and the figure stands above it instead of in it — see
+   .why-title-layer and titleSeat. Registered for the same reason as --why-shaft-x:
+   it is read inside a calc() in a `translate`, and an unregistered property that
+   has never been written is the empty string, which invalidates the whole
+   declaration and takes the type's parallax down with it. */
+@property --why-mark-y {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+.why-night {
+  --why-lens-r: clamp(150px, 26vmin, 340px);
+  position: absolute;
+  inset: 0;
+  background: #000106;
+  -webkit-mask-image: radial-gradient(
+    circle var(--why-lens-r) at var(--why-lens-x) var(--why-lens-y),
+    rgb(0 0 0 / calc(1 - var(--why-lens-a))) 0%,
+    rgb(0 0 0 / calc(1 - var(--why-lens-a) * 0.78)) 44%,
+    rgb(0 0 0 / calc(1 - var(--why-lens-a) * 0.34)) 74%,
+    #000 100%
+  );
+  mask-image: radial-gradient(
+    circle var(--why-lens-r) at var(--why-lens-x) var(--why-lens-y),
+    rgb(0 0 0 / calc(1 - var(--why-lens-a))) 0%,
+    rgb(0 0 0 / calc(1 - var(--why-lens-a) * 0.78)) 44%,
+    rgb(0 0 0 / calc(1 - var(--why-lens-a) * 0.34)) 74%,
+    #000 100%
+  );
+}
+
+/* The overhead shaft the figure stands in. Wider at the floor than at the top
+   and feathered on both edges, so it reads as light falling through something
+   rather than a gradient rectangle. Its opacity is scrubbed by the timeline, so
+   the pawn is lit *by* the reveal.
+
+   Placed on the figure, not on the frame. This used to sit at a hard `left: 50%`,
+   which is only the right answer if the figure is centred — and it is not: it
+   stands in the gap between "why" and "chessee?", which on a 16:10 frame is ~240px
+   left of centre and on an ultrawide over 500px. So the cone was falling next to
+   the pawn rather than onto it, while the ground pool underneath it (which does
+   track the figure — see --think-x on .why-contact) was correctly placed, leaving
+   the frame with two lights that disagreed about where their subject was. */
+.why-shaft {
+  position: absolute;
+  left: 50%;
+  top: -12%;
+  width: min(52vw, 680px);
+  height: 118%;
+  translate: calc(-50% + var(--why-shaft-x)) 0;
+  background: linear-gradient(
+    180deg,
+    rgba(155, 216, 237, 0.16) 0%,
+    rgba(155, 216, 237, 0.09) 34%,
+    rgba(155, 216, 237, 0.04) 66%,
+    rgba(155, 216, 237, 0) 92%
+  );
+  /* Reaches fully transparent well inside its own box. `filter` is applied
+     before `mask`, so a blur cannot soften the mask's own cut-off — if the
+     gradient still has alpha where the element ends, that edge lands as a hard
+     vertical line down the whole frame. */
+  mask-image: radial-gradient(
+    46% 104% at 50% 0%,
+    #000 0%,
+    #000 34%,
+    rgba(0, 0, 0, 0.3) 64%,
+    transparent 88%
+  );
+  filter: blur(14px);
+}
+
+/* Two slow drifting masses, so the black never sits perfectly still. */
+.why-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+}
+
+.why-glow-a {
+  left: -14%;
+  top: -6%;
+  width: 62%;
+  height: 68%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(35, 96, 124, 0.5),
+    rgba(35, 96, 124, 0) 70%
+  );
+  animation: why-drift-a 38s ease-in-out infinite alternate;
+}
+
+.why-glow-b {
+  right: -18%;
+  bottom: -14%;
+  width: 70%;
+  height: 64%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(20, 62, 92, 0.55),
+    rgba(20, 62, 92, 0) 72%
+  );
+  animation: why-drift-b 52s ease-in-out infinite alternate;
+}
+
+@keyframes why-drift-a {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(6%, 5%, 0) scale(1.14);
+  }
+}
+
+@keyframes why-drift-b {
+  from {
+    transform: translate3d(0, 0, 0) scale(1.1);
+  }
+  to {
+    transform: translate3d(-5%, -6%, 0) scale(1);
+  }
+}
+
+/* Receding rank grid on an 8-cell rhythm — the floor the figure stands on until
+   it falls through it. Registered so GSAP can interpolate the length rather than
+   swapping strings, and so the transform keeps its perspective: the timeline
+   scrubs --why-files-y, never `transform` itself, because GSAP recomposes the
+   whole transform list and would drop the perspective/rotateX that make this a
+   floor instead of a flat grid. */
+@property --why-files-y {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+.why-files {
+  position: absolute;
+  left: 50%;
+  bottom: -14%;
+  width: 250%;
+  height: 62%;
+  transform: translate(-50%, var(--why-files-y)) perspective(1500px)
+    rotateX(66deg);
+  transform-origin: 50% 100%;
+  background-image: linear-gradient(
+      90deg,
+      rgba(155, 216, 237, 0.24) 1px,
+      transparent 1px
+    ),
+    linear-gradient(180deg, rgba(155, 216, 237, 0.18) 1px, transparent 1px);
+  background-size: 12.5% 84px;
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.4) 26%,
+    #000 74%
+  );
+  will-change: transform;
+}
+
+/* A hair of light where the floor meets the dark, so the grid resolves into a
+   horizon rather than just stopping. */
+.why-horizon {
+  position: absolute;
+  left: 50%;
+  bottom: 23%;
+  width: min(86vw, 1180px);
+  height: 1px;
+  translate: -50% 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(155, 216, 237, 0.22) 30%,
+    rgba(190, 234, 248, 0.4) 50%,
+    rgba(155, 216, 237, 0.22) 70%,
+    transparent
+  );
+}
+
+/* The oversized outlined "?" that used to sit here — the furthest-back depth
+   layer, bleeding off the right edge — has been removed. Two reasons, and both
+   are about the copy rather than the composition: the question is already set in
+   particles at up to 200px in the middle of the same frame, so the glyph was the
+   chapter saying the same word twice, and at 60svh its stroke ran straight
+   through the beats' measure while counter-drifting against the scroll, which is
+   a moving hairline across body copy the reader is trying to read. The rank grid
+   and the two drifting glows carry the depth on their own. */
+
+/* ---------------------------------------------------------------------- */
+/* 2 — hems                                                                */
+/* ---------------------------------------------------------------------- */
+
+.why-hems {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Top edge. The dusk band above resolves to a flat #000106, but this stage opens
+   with the overhead shaft at rgba(155, 216, 237, 0.16) and both drifting glows
+   already live along its first row — a ~8 luma step, too small to look like art
+   direction and exactly big enough to read as a rule drawn across the page. */
+.why-hem-top {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: clamp(64px, 11svh, 120px);
+  background: linear-gradient(
+    180deg,
+    #000106 0%,
+    rgba(0, 1, 6, 0.7) 46%,
+    rgba(0, 1, 6, 0) 100%
+  );
+}
+
+/* ── The reading edge ────────────────────────────────────────────────────
+   The ground the argument is read against on a frame wide enough to put the
+   argument beside the picture rather than on top of it — see the side-column block
+   under .why-beat. Off by default: where the copy is centred it carries its own
+   ground (.why-beat::before) and a directional wash would be darkening the wrong
+   third of the frame.
+
+   This is deliberately *not* the frame-wide ellipse that used to live in this file
+   and was removed for good reason (see the note directly below). The difference is
+   not the strength, it is the shape. A soft ellipse over the middle of a detailed
+   picture reads as the picture being out of focus, because that is what large local
+   softening looks like to the eye. A ramp that runs off one edge of the frame reads
+   as light falling away — the oldest device in film titling, and one the eye files
+   under lighting rather than under blur. So the copy gets a real ground and the
+   board is never once accused of being unfocused.
+
+   It ends at 72% and is under a tenth of a stop past 60%, which is the part that
+   matters: everything the chapter actually points at in this act — the arc over the
+   board, the four instrument cards, the rating gauge — is composed into the right
+   of the frame by the camera (placeSide in chess/chessScene.js), and none of it is
+   ever behind this. */
+.why-scrim {
+  position: absolute;
+  inset: 0;
+  display: none;
+}
+
+/* ── There is no frame-wide scrim any more ───────────────────────────────
+   There was one here: an ellipse across the middle of the stage, 62% by 46% of the
+   frame at 0.82, carrying the centred copy. It worked and it cost too much. A wash
+   that size does not read as a scrim behind text, it reads as the *board being out
+   of focus* — the eye takes a large soft darkening over a detailed image as haze in
+   the image, and this chapter's whole claim is that the reader is watching analysis
+   being done. Protecting the sentence at the price of the thing it describes is the
+   wrong half of the trade.
+
+   The copy carries its own ground instead: see .why-beat::before, which is the same
+   device sized to the block rather than to the viewport, and the type's own halo. The
+   board is now unobstructed everywhere except directly behind the words. */
+
+/* Bottom edge, and now doing one job rather than two: it resolves the stage's
+   last rows toward the flat tone the next chapter opens on. Shallower than it was
+   (68%), because the copy it used to carry has moved to the middle of the frame
+   and the ellipse above carries it there — at the old depth this was also
+   swallowing the near end of the board and the panel that stands in front of
+   White, which are two of the things the chapter is asking the reader to look
+   at. */
+.why-hems::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 34%;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 1, 6, 0) 0%,
+    rgba(0, 1, 6, 0.3) 38%,
+    rgba(0, 1, 6, 0.66) 68%,
+    rgba(0, 1, 6, 0.92) 100%
+  );
+}
+
+/* Keeps the large flat gradients from banding on wide displays.
+ *
+ * Held right down from the 0.5 it ran at, which is the second half of the same
+ * problem the frame-wide scrim was: this is a one-pixel dot on a three-pixel grid,
+ * and at half strength over a rendered board it is a screen door in front of it. The
+ * dots land on the pieces' highlights and the tiles' edges and take the crispness off
+ * both — the layer meant to hide banding was softening the one thing on the stage
+ * that has real detail in it.
+ *
+ * It still has a job: the chapter opens and closes on large flat gradients (the
+ * night, the blackout, the flood) which do band without it. At this strength it is
+ * enough for those and invisible on the board. */
+.why-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.16;
+  background-image: radial-gradient(
+    rgba(180, 218, 234, 0.05) 1px,
+    transparent 1px
+  );
+  background-size: 3px 3px;
+}
+
+/* Closes the frame's corners so they do not compete with the middle. Pulled back
+   from 0.55/0.85 and moved further out: the board's own subject now lives at the
+   edges of the composition — the depth gauge to the left, the evaluation bar to the
+   right, the rating gauge in a corner — and a vignette tuned for an empty frame was
+   taking a third of the contrast off the cards the chapter is pointing at.
+
+   Pulled back once more with the camera, and for the same reason as the board's own
+   mask: the shot now reaches the frame's edges, so a vignette that starts two thirds
+   out starts *on the subject*. It holds clear to 80% and never gets darker than
+   0.44 in the corners — enough that the frame still closes rather than running off
+   the sides, and not enough to be read as a shape sitting on the picture. */
+.why-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    132% 104% at 50% 46%,
+    transparent 0%,
+    transparent 80%,
+    rgba(0, 1, 6, 0.18) 92%,
+    rgba(0, 1, 6, 0.44) 100%
+  );
+}
+
+/* ---------------------------------------------------------------------- */
+/* 3 — the question                                                        */
+/* ---------------------------------------------------------------------- */
+
+/* One word, rendered twice, in two boxes either side of the figure in z. The
+   fill is behind the pawn so the pawn occludes it; the ghost is a hairline
+   outline in front of everything, so the letters the pawn eats carry on across it
+   as a wireframe and no part of the figure is ever under ink. The header comment
+   in WhySection.tsx has the full reasoning and the history — including why the
+   particle field this replaced could not do it.
+
+   The two boxes are identical by construction: same flex centring, same inherited
+   type, and every metric on the shared `.why-mark` rule below. They have to stay
+   that way — the effect is one word cut in half, and a half-pixel of disagreement
+   between the layers shows up as a double-struck letter. */
+.why-title,
+.why-title-ghost {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  /* No pointer events on either. The pointer is read from the window (see the
+     timeline), and a full-frame box over the stage would eat every move before
+     the shatter lens underneath saw it. */
+  pointer-events: none;
+}
+
+/* Behind the figure (z 5) and above the hems (z 2). Holds the solid plate and
+   the specular sweep that rides on it — both belong to the same surface, so they
+   share one stacking level and are ordered by source. */
+.why-title {
+  z-index: 3;
+}
+
+/* In front of the figure, and of the beats on a wide frame. The narrow
+   breakpoint lifts .why-beats above this deliberately — see the note there. */
+.why-title-ghost {
+  z-index: 6;
+}
+
+/* ── One layer of the mark ───────────────────────────────────────────────
+   All three (plate, sheen, outline) are this: a full-frame box with the word
+   centred in it. Identical by construction, which is the invariant the whole
+   effect rests on.
+
+   The translate is the type's parallax, and it is derived rather than driven —
+   no second tween, no second pointer listener. `--why-lens-x` is already the
+   eased cursor in stage-relative px, so subtracting the box's own centre (50% of
+   this element, which is inset:0 of the stage) gives the offset from centre, and
+   scaling it by a small negative number moves the word *against* the cursor:
+   ±10px at the frame's edges on a 1440px viewport.
+
+   Against, not with, because the figure in front of it does not move at all. A
+   background plane sliding opposite the camera's turn while the foreground holds
+   still is what parallax *is* — and the payoff is that the edge where the pawn
+   cuts the word shifts as you move, so the figure reads as standing in front of
+   the type rather than being pasted onto it. Small on purpose: at more than about
+   a dozen pixels the word starts to look like it is being dragged.
+
+   Multiplying a calc() sum by a number is the one arithmetic CSS allows here —
+   lengths cannot be multiplied by lengths, which is why this is a ratio and not a
+   percentage of anything.
+
+   The second term on the vertical axis is not parallax. --why-mark-y is where the
+   narrow-frame lockup puts the type: below 620px the mark stacks and the figure
+   stands above it rather than in it, and both positions are solved together in the
+   TSX because neither fits in a slot the other does not know about (see titleSeat).
+   0px on any frame wide enough for one line, which is every frame where the figure
+   stands inside the word and the word does not move. It rides here rather than on
+   `.why-mark` so it cannot interact with the `filter` and `autoAlpha` the timeline
+   writes on that element every frame of the entrance. */
+.why-title-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  translate: calc((var(--why-lens-x) - 50%) * -0.014)
+    calc((var(--why-lens-y) - 50%) * -0.014 + var(--why-mark-y));
+}
+
+/* ── The mark ────────────────────────────────────────────────────────────
+   Every metric lives here, on the class both layers share, so the fill and the
+   outline cannot drift apart. Nothing below this rule may set size, weight,
+   tracking or line-height on one layer alone.
+
+   Sized in vw rather than clamped to a pixel ceiling, because the mark's whole
+   character is that it spans the frame. The twelve glyphs of "why chessee?" measure
+   6.05em at this weight and tracking — measured in the browser, not estimated — and
+   the space between the words is 1em (see .why-mark-gap), so 12.2vw puts the mark at
+   ~86% of the width at any window size. That is the reference proportion and it
+   leaves a real margin either side. The svh term is the guard for a short landscape
+   frame, where the vw figure would make the word taller than the figure it is set
+   around.
+
+   It was 13.8vw against a 0.22em space, which is the same 86% with the gap closed
+   up — and a closed-up gap is what put the figure through the type. The pawn's
+   silhouette is ~140px across at the word's height on a 1440px frame against a 44px
+   space, so it ate the "y" of "why" and most of the "c" of "chessee?"; the outline
+   layer is a 1.2px stroke and cannot carry a whole missing letter at this size, so
+   the frame read "why hessee?". Trading a stop of type size for a gap the figure
+   actually fits in is the cheaper half of that exchange by a wide margin — the mark
+   is barely smaller and the question is legible again.
+
+   Tracked in hard, which is the single largest contributor to the modern read: at
+   default tracking a heavy lowercase sans at this size looks like body copy that
+   got enlarged.
+
+   Nothing here says anything about colour. The three layers are three different
+   materials of one object and each states its own (see .why-mark-fill for the lit
+   plate, .why-mark-sheen for the highlight, .why-mark-line for the outline); what
+   they must never disagree about is where the glyphs *are*, which is everything
+   above this line. */
+.why-mark {
+  display: block;
+  max-width: 94%;
+  /* One line, always. The vw sizing above is what makes that safe. */
+  white-space: nowrap;
+  font-family: "Inter", var(--sans);
+  font-weight: 800;
+  font-size: min(13vw, 29svh);
+  letter-spacing: -0.045em;
+  text-align: center;
+  /* Both properties are animated by the timeline (autoAlpha on the way in, blur
+     on the way out), and this is a large box on a stage with three canvases on
+     it. */
+  will-change: opacity, filter;
+}
+
+/* Words whole, so a break can only ever fall between them — which matters on the
+   narrow frame below, where the mark stacks. */
+.why-mark-word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* Word spacing, not a hole for the figure any more. The pawn now stands on the
+   wordmark's own true centre (see titleSeat in the TSX), which lands it across
+   "chessee?"'s leading strokes rather than in this gap — the interlock (letters
+   continuing as a wireframe through the figure, see .why-title-ghost) reads off
+   that overlap now. 1em is kept because it is still the right amount of daylight
+   between the two words at this tracking; it just no longer has to be sized to
+   the figure's silhouette. See the note on .why-mark's own size for what a
+   tighter, 0.22em space used to cost when the figure stood here instead. */
+.why-mark-gap {
+  display: inline-block;
+  width: 0.62em;
+}
+
+/* A clip box per letter, which is what lets each one wipe up out of its own
+   baseline. `overflow: hidden` needs the box to actually contain the glyph's ink,
+   hence the line-height: Inter's ascent + descent is 1.211em, so anything below
+   that crops the "y" and the "?" at rest rather than only while they move.
+
+   1.26 also happens to centre the word optically for free. The box's middle sits
+   at half the line-height; the x-height's middle sits at
+   `halfLeading + ascent - xHeight/2`, and those are equal exactly when
+   `ascent - descent == xHeight` — which for Inter (0.969 - 0.242 = 0.727) it is.
+   So flex-centring the box centres the lowercase, with no nudge to maintain. */
+.why-glyph {
+  display: inline-block;
+  vertical-align: top;
+  overflow: hidden;
+}
+
+.why-glyph i {
+  display: block;
+  font-style: normal;
+  line-height: 1.26;
+  /* Transformed per letter on the way in and on the way out. */
+  will-change: transform;
+}
+
+/* ── The plate ───────────────────────────────────────────────────────────
+   The solid word, and the surface everything else here is a property of. Not a
+   flat fill: the stage has a real light in it — .why-shaft is a cone coming down
+   from above the figure — and type painted one flat value in a lit scene is the
+   one thing that always reads as an overlay rather than as an object. So the
+   gradient is that light: near-white across the top where the shaft lands, cooling
+   through the page's own blue-grey ink down the letter, and darkest at the
+   baseline where nothing is lighting it.
+
+   It also has to leave headroom. A plate that is already #ffffff has nowhere to
+   go when the specular sweep crosses it, so the top stop stops short of white and
+   the highlight is what takes it there.
+
+   Clipped per glyph rather than across the word, which sounds wrong and is not:
+   the gradient is vertical only and every glyph box is exactly 1.26em tall and
+   top-aligned, so all twelve resolve the same ramp. Per-glyph also means the
+   material travels with the letter through the wipe instead of the letter sliding
+   through a stationary gradient.
+
+   ── Why the stops are where they are ──
+   They are solved against the ink, not against the box. The box is 1.26em tall to
+   contain the descender (see .why-glyph), so the letterforms do not start at 0%
+   and do not end at 100%: with 0.0245em of half-leading, Inter's baseline lands at
+   0.9935em — 79% of the box — and the x-height top at 0.2665em, or 21%. Anything
+   outside 14%–95% is empty space and the stops there only exist to keep the ramp
+   from turning over inside the ink.
+
+   So 14% is the top of the ascenders, catching the shaft; the ramp holds near-white
+   through the x-height where the eye reads the word; and it drops off hard between
+   72% and 82%, which brackets the baseline. That last drop is the whole relief —
+   the letters have a lit crown and a shaded foot, which is what a solid object
+   under a light directly above it looks like.
+
+   ── Why the relief is a gradient and not a shadow ──
+   It was two hard `text-shadow` offsets first: a dark lip 0.011em down and a light
+   catch 0.007em up. It rendered as a black word with a hairline, and the reason is
+   paint order rather than anything about the values. Backgrounds paint *below* text
+   and text shadows — always — and `background-clip: text` does not change that, it
+   only changes the background's clip. The glyph's own fill is `transparent` here,
+   so the shadow of a transparent glyph, opaque and offset by two pixels, was
+   painted straight over the clipped gradient and covered essentially all of it.
+   Nothing that paints in the text phase can be combined with a background-clipped
+   fill; the relief has to be inside the gradient, and the ambient shadow has to be
+   a filter (see .why-mark's own note and the timeline's starting frame). */
+.why-mark-fill i {
+  background-image: linear-gradient(
+    180deg,
+    #ffffff 14%,
+    #fbfdff 34%,
+    #f0f6fa 58%,
+    #dce9f0 78%,
+    #cad9e2 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ── The specular sweep ──────────────────────────────────────────────────
+   The interactive half, and the reason the plate above was left short of white:
+   this is the same word again in near-white, masked to a soft disc that follows
+   the cursor. What the reader sees is a highlight travelling across the
+   letterforms — the type behaving like a physical surface under a moving light
+   rather than a graphic that happens to react.
+
+   It is the *same* light as the night's hole. Both read --why-lens-x/-y/-a, so
+   the highlight is always centred on the point where the frame is coming apart,
+   and the two effects reinforce each other instead of reading as two unrelated
+   cursor gimmicks. --why-lens-a gates it, so the sweep arrives when the pointer
+   enters the frame and leaves with it — and never shows at all on a device
+   without one, where the plate alone still reads as finished.
+
+   `screen`, so the highlight *adds* to the plate rather than replacing it, which
+   is what keeps the material's own gradient visible through the bright spot. Safe
+   to blend here: .why-title carries a z-index and is therefore an isolated group,
+   so this cannot reach past the plate it is lighting. */
+.why-title-sheen {
+  --why-sheen-r: clamp(190px, 30vmin, 440px);
+  mix-blend-mode: screen;
+  opacity: var(--why-lens-a);
+  -webkit-mask-image: radial-gradient(
+    circle var(--why-sheen-r) at var(--why-lens-x) var(--why-lens-y),
+    #000 0%,
+    rgba(0, 0, 0, 0.62) 42%,
+    rgba(0, 0, 0, 0.16) 74%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    circle var(--why-sheen-r) at var(--why-lens-x) var(--why-lens-y),
+    #000 0%,
+    rgba(0, 0, 0, 0.62) 42%,
+    rgba(0, 0, 0, 0.16) 74%,
+    transparent 100%
+  );
+}
+
+/* Cool at the bottom rather than neutral: the light in this chapter is the same
+   blue the pawn is rim-lit in and the rules are drawn in, so a white-hot
+   highlight with no colour in it would belong to a different scene. */
+.why-mark-sheen i {
+  background-image: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #f4fcff 46%,
+    #cdeaf8 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* The same word as a hairline. Over the fill the stroke lands on the fill's own
+   edge and reads as nothing; over the pawn it is the only thing left of the
+   letter, and that is where the effect happens.
+
+   Sub-pixel on purpose: -webkit-text-stroke centres the stroke on the outline, so
+   half of any width eats into the counters — at 2px the "e"s in "chessee" close up
+   at small sizes. 1.6px is the ceiling that still clears them at this size; going
+   further would have to come with a size bump to keep "chessee?"'s three "e"s from
+   filling in. Cool-white rather than grey, and at high opacity rather than the
+   0.66 this started at: the figure now stands across "chessee?"'s own leading
+   letters (see titleSeat), not just a descender's tail, so the stroke has real
+   work to do — carrying the "c" and most of the "h" on its own, against the pawn's
+   dark, dithered material rather than the flat night behind it. A hairline weak
+   enough to disappear over the fill (by design, so it never doubles the plate)
+   was also too weak to survive that contrast, and the letters were vanishing
+   instead of continuing through the figure. */
+.why-mark-line i {
+  color: transparent;
+  -webkit-text-stroke: 1.6px rgba(233, 247, 253, 0.94);
+}
+
+/* A little bloom on the outline, and it goes on the layer rather than on the mark
+   inside it: `.why-mark-line` *is* a `.why-mark`, and the timeline writes an inline
+   `filter` there every frame of the entrance and the exit, which would win over
+   anything declared in CSS. The wrapper is untouched by GSAP.
+
+   What it buys is the difference between a drawn line and a lit edge. A bare
+   stroke on a near-black stage reads as vector artwork sitting on the frame; the
+   same stroke with the chapter's own accent bleeding a few pixels off it reads as
+   light catching the edge of something behind the figure. Two passes rather than
+   one, now that the stroke has to hold its own over the pawn's body and not just
+   over open night: a tight pass keeps the letterform crisp at the edge the stroke
+   actually draws, and a second, wider, dimmer pass is what carries past the
+   model's own dark material — a single soft shadow strong enough to do that on
+   its own smeared the letter into a blur first. Still subordinate to the plate
+   everywhere the two layers overlap; the second pass only reads where the fill
+   is absent, which is where the pawn is. */
+.why-title-line {
+  filter: drop-shadow(0 0 2px rgba(214, 240, 250, 0.85))
+    drop-shadow(0 0 9px rgba(155, 216, 237, 0.55));
+}
+
+/* ── The mark on a narrow frame ──────────────────────────────────────────
+   Stacked, not shrunk. One line sized to fit a phone's width leaves the mark at
+   a seventh of the frame's height with the figure standing in a screen of empty
+   air either side of it — the type stops being the graphic. Two lines at 19.4vw
+   ("chessee?" is the longer word at 4.4em, measured, so that lands it at ~86% of
+   the width, the same proportion the wide frame uses) fills the frame and gives
+   the figure a word to stand *between* rather than one to stand across.
+
+   ── Why there is an aspect query next to the width one ──
+   Because the thing that decides this is not how narrow the frame is, it is how
+   narrow it is *for its height*. A single line is sized by the width and the figure
+   by the height, so on a tall frame the two drift apart until the composition is a
+   small word floating in a tall dark rectangle: at 768x1024 the single line sets at
+   94px in a frame with 340px of empty air above the lockup and as much below.
+   Stacked, the same frame sets at 147px and the lockup fills it.
+
+   5/6 is where the stacked layout stops fitting, solved rather than picked. The
+   block is the figure, a gap and two lines: 2.8 x 1.26em for the figure (see
+   FIGURE_TO_MARK) plus 2.32em of type is 1.134w at 19.4vw, and with STACK_GAP's
+   0.05h and a margin it needs h >= 1.19w. Above that ratio the two lines and the
+   figure cannot both be whole and the single line is the better answer; below it,
+   this one is. The width query stays as well, for the narrow-but-not-tall frames
+   the ratio lets through.
+
+   A flex column rather than a wrap, because the leading has to close up: each
+   glyph box is 1.26em tall to contain the "y" and the "?" without cropping (see
+   .why-glyph), and inline lines would inherit that as line spacing. The negative
+   margin takes it back out. Applied to both layers by the shared class, so the
+   outline stacks with the fill.
+
+   ── And what is not in here ──
+   What moves the mark down the frame. That is --why-mark-y, solved in the TSX
+   alongside the figure's pose, because neither half fits in a slot the other does
+   not know about: the space the type needs is what the figure leaves, and the
+   figure's size is a multiple of the type's. The stated intent of stacking was to
+   give the figure "a word to stand between", and at these proportions there is no
+   between — a 430x860 frame puts a ~300px figure against a ~190px block of type,
+   so a centred mark is a mark with a pawn behind it and two lines drawn across its
+   chest. The lockup is vertical here instead: the figure above, the question under
+   it. See the stacked branch in titleSeat. */
+@media (max-width: 620px), (max-aspect-ratio: 5 / 6) {
+  .why-mark {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: min(19.4vw, 22svh);
+  }
+
+  .why-mark-word + .why-mark-word,
+  .why-mark-gap + .why-mark-word {
+    margin-top: -0.2em;
+  }
+
+  /* The space between the words is what the line break replaced. */
+  .why-mark-gap {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* 4 — the argument                                                        */
+/* ---------------------------------------------------------------------- */
+
+/* All four beats occupy the same box in the middle of the frame, one visible at
+   a time, so passing them reads as passing landmarks at a fixed distance rather
+   than as a column scrolling by. */
+.why-beats {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+}
+
+/* ── Centred, and centre-aligned ─────────────────────────────────────────
+   This was a left column held to the gutter, for a composition that no longer
+   exists: the background was a shaft the reader fell down, a lit figure fell
+   through the middle of the frame in front of the copy, and a centred measure
+   spent its first two beats with a silhouette sitting on its longest lines.
+
+   The background is now a board being analysed, and it is composed *around* its
+   own subject — the instruments stand at the edges of the frame, the opponents
+   along the top, the rating gauge in a corner — which leaves the middle as the
+   quietest part of the shot rather than the busiest. So the argument goes where
+   the eye already is, and the frame reads as one thing instead of a column
+   pasted onto the left of a picture.
+
+   Centre-*aligned* as well as centred, which is the part worth defending. Four
+   ragged-both-edges paragraphs would normally be a legibility cost; they are not
+   here because the measure is held to 46 characters (see .why-beat-body), which
+   puts each beat at three or four lines. At that length centred type reads as a
+   statement being made, which is what this chapter is — and a centred block of
+   left-aligned prose under a centred numeral and a centred rule would read as a
+   mistake in one of the two. */
+/* ── Why the vertical centring is auto margins and not a translate ───────
+   This was `top: 50%; translate: -50% -50%`, which is the ordinary way to centre a
+   box of unknown height and which did not work here. It was wrong on every frame the
+   chapter has ever rendered, and it was wrong on one axis only, which is why it
+   survived: horizontally the block was centred, so the layout looked deliberate.
+
+   Measured at 430x860 the block sat at 430..775 — its top edge on the frame's
+   centre line, 430px of empty frame above it, and the closing beat's last line 13px
+   off the bottom edge.
+
+   The cause is a collision over one channel. GSAP folds an element's independent
+   `translate` property into `transform` the first time it takes the element over,
+   because the two cannot be composited independently — and this element is taken
+   over: the beats' entrance animates `y` (46px lift, see WhySection.tsx). So the
+   -50% became part of the same number the tween owns, and the tween's own value
+   overwrote it. `-50%` on the x axis survived only because nothing animates `x`.
+
+   So the centring has to live somewhere the timeline does not write, and auto margins
+   against a stretched block are exactly that: with `top` and `bottom` both 0 and the
+   height definite, `margin-block: auto` splits the leftover space evenly, in layout,
+   where no transform can reach it. `translate` keeps the x axis alone, which is the
+   axis it is safe on.
+
+   This is also why the side-column block below sets `translate: none` outright rather
+   than zeroing one component: with the box held to the left gutter there is nothing
+   for a translate to do, and the safest transform is the one that isn't there. */
+.why-beat {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  height: fit-content;
+  margin-block: auto;
+  width: min(720px, calc(100% - var(--w-gutter) * 2));
+  translate: -50% 0;
+  text-align: center;
+  /* The copy is real text and should be selectable. Safe to opt in even though
+     three of the four are stacked underneath: they are hidden with
+     `visibility: hidden` (GSAP autoAlpha), and a hidden element takes no
+     pointer events. */
+  pointer-events: auto;
+  will-change: transform, opacity;
+}
+
+/* ── The copy's own ground ───────────────────────────────────────────────
+   What replaced the frame-wide scrim (see the note in the hems). Same instrument,
+   two differences that are the whole point:
+
+   It is sized to the *block* rather than to the viewport, so the darkening ends a
+   few dozen pixels past the last word instead of a few hundred. Anything wider stops
+   being read as a ground behind text and starts being read as the board going soft.
+
+   And it travels with the beat. It is a child of .why-beat, so the entrance, the
+   exit and the 46px lift the timeline animates carry it — a separate layer would
+   have to be tweened in parallel and would drift out of step under a scrub.
+
+   `z-index: -1` puts it behind the beat's own content and no further: .why-beat
+   already establishes a stacking context (will-change), so this cannot fall behind
+   .why-beats and out from under the type it is carrying. */
+.why-beat::before {
+  content: "";
+  position: absolute;
+  /* Generous at the sides, tighter top and bottom: the measure is centred and ragged
+     both edges, so the shortest lines end well inside the box and the falloff has to
+     start outside the longest ones. */
+  inset: -12% -14%;
+  z-index: -1;
+  background: radial-gradient(
+    54% 58% at 50% 50%,
+    rgba(0, 1, 6, 0.8) 0%,
+    rgba(0, 1, 6, 0.66) 42%,
+    rgba(0, 1, 6, 0.34) 70%,
+    rgba(0, 1, 6, 0.08) 88%,
+    rgba(0, 1, 6, 0) 100%
+  );
+}
+
+/* Hairline above each beat, drawn out from the middle as the beat arrives. Rules
+   rather than cards: the beats are one continuous argument, and boxing them
+   would turn them into four unrelated claims.
+
+   Symmetric now, in both the gradient and the growth: it used to be brightest at
+   its left end and to scale from that end, which was correct over a left column
+   and reads as a mistake over a centred one — a rule that grows from the left
+   edge of a centred block points at nothing. It opens from the middle instead,
+   which is where the numeral below it sits. */
+.why-beat-rule {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  transform-origin: center;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(155, 216, 237, 0.08) 12%,
+    rgba(155, 216, 237, 0.52) 50%,
+    rgba(155, 216, 237, 0.08) 88%,
+    transparent
+  );
+}
+
+/* The typographic anchor: a Didone numeral big enough to be read at a glance
+   while falling, which is what tells the eye a new statement has started before
+   any of the words are. Set in the same vertical wash as the display type
+   elsewhere in the chapter, a step darker than the copy so it never outranks
+   it. */
+.why-beat-num {
+  display: block;
+  overflow: hidden;
+  /* Clip box, widened enough that the numeral's own overshoot isn't shaved while
+     a glyph parked at yPercent 112 is still well clear of it. */
+  padding: 0.1em 0.04em 0.14em;
+  margin: clamp(14px, 2.2svh, 24px) -0.04em clamp(8px, 1.4svh, 14px);
+  font-family: var(--display);
+  /* 600, the heaviest cut loaded in index.html, and the third value this has been
+     set to. A Didone's thin strokes are the first thing a near-black background
+     eats: at 400 the hairlines broke up into dashes at the smaller end of the
+     clamp, and 500 fixed that for three of the four numerals. The fourth is the
+     one that matters — '4' is the only glyph here whose thin strokes carry its
+     whole shape (a hairline diagonal and a hairline crossbar, no stem to fall
+     back on), and reversed out of the stage with a gradient fill that darkens
+     toward the baseline it read as an outline of a 4 rather than a 4. Checked on
+     the rendered frame at 1152x720 and 430x860.
+
+     There is no cost to spend here. The reasoning that held this down was about
+     *reading*, and these are two glyphs looked at once — the same argument that
+     keeps the Didone off the body copy is the argument for letting it be heavy
+     here. */
+  font-weight: 600;
+  font-size: clamp(34px, 4.2vw, 66px);
+  line-height: 0.84;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The wash used to run out at #3f6c80, which is a mid slate over a #000106
+   stage — the bottom third of every numeral was reading as a smudge rather than
+   as type, so the count that is supposed to be legible at a glance while falling
+   was the least legible thing in the block. The ramp now stays inside the
+   chapter's light range end to end. drop-shadow rather than text-shadow: the fill
+   is a clipped gradient, so a text shadow paints *through* the transparent glyph
+   and fogs it instead of backing it. */
+.why-beat-num i {
+  display: inline-block;
+  font-style: normal;
+  background: linear-gradient(172deg, #f4fbfe 2%, #cbe6f2 52%, #93bfd3 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 10px rgba(0, 1, 6, 0.85));
+  will-change: transform;
+}
+
+.why-beat-label {
+  /* Tracking has to be a variable, and not for tidiness: the typewriter below
+     sizes itself in characters, and a character's width in a monospaced face is
+     its advance *plus* the tracking. The two being the same value is what keeps
+     the caret sitting exactly on the last glyph. */
+  --w-track: 0.18em;
+  display: flex;
+  align-items: center;
+  /* Centred with the rest of the block. The dash keeps its place at the head of
+     the label rather than being mirrored on both sides: it reads as the mark the
+     label is written after, and a pair of them would turn a kicker into a
+     decorative caption. */
+  justify-content: center;
+  gap: 14px;
+  margin: 0 0 clamp(12px, 2svh, 20px);
+  font-family: var(--label);
+  font-size: clamp(12.5px, 1.1vw, 16px);
+  /* 600 is the heaviest cut JetBrains Mono is loaded at (see index.html). A
+     kicker is the one place on this stage where weight is free: it is three or
+     four words, it names the beat, and it is the first thing the eye lands on
+     after the numeral. */
+  font-weight: 600;
+  letter-spacing: var(--w-track);
+  text-transform: uppercase;
+  color: var(--w-ink-soft);
+  text-shadow: 0 1px 2px rgba(0, 1, 6, 0.85);
+}
+
+.why-beat-dash {
+  flex: none;
+  width: clamp(28px, 4.4vw, 56px);
+  height: 1px;
+  transform-origin: left;
+  background: linear-gradient(90deg, rgba(155, 216, 237, 0.5), transparent);
+}
+
+.why-beat-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+/* The typewriter. The kicker is set in the monospaced label face, so "how much
+   of this label has been typed" is expressible as a width in characters — which
+   means the text itself is never split, transformed or duplicated: one box, one
+   animated property, and the label stays a single readable string to a screen
+   reader and to a copy-paste at every frame.
+
+   --why-type is written by GSAP only while the beat is being scrubbed in, so the
+   fallback is the finished label. That is the whole no-JS / reduced-motion story:
+   the kicker is simply set. */
+.why-beat-kicker {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  vertical-align: bottom;
+  width: calc(var(--why-type, var(--why-chars)) * (1ch + var(--w-track)));
+}
+
+/* Rides the edge of the typed text, which it gets for free by being the next box
+   in the flex row. Blinks on background-color rather than opacity: GSAP owns
+   opacity here, and a CSS animation on the same property would win against the
+   inline style and pin the caret on screen. */
+.why-beat-caret {
+  flex: none;
+  width: 2px;
+  height: 1.2em;
+  background: var(--w-accent);
+  box-shadow: 0 0 8px rgba(155, 216, 237, 0.45);
+  animation: why-caret 1.05s steps(1, end) infinite;
+}
+
+@keyframes why-caret {
+  0%,
+  47% {
+    background-color: var(--w-accent);
+  }
+  48%,
+  100% {
+    background-color: rgba(155, 216, 237, 0.08);
+  }
+}
+
+/* Reading size, in a frame that also has a falling figure and a lit tunnel in
+   it. Smaller than the old flowing column was set at — that column had the page
+   to itself and could afford 28px in a 760px measure; here the copy has to fit
+   the lower third of a viewport alongside everything else, and a paragraph that
+   needs the whole frame would be competing with the effect the chapter is built
+   around. line-height comes down as the size goes up: a large face needs
+   proportionally less leading. */
+/* ── The reading voice ───────────────────────────────────────────────────
+   Set in the page's reading serif (--prose, Spectral) rather than in Inter, and
+   this is the chapter's one genuine change of voice rather than a change of font.
+   These four paragraphs are the closing argument of the page; they are also the
+   only long-form copy anyone is asked to take in while a frame is moving behind
+   them, and they were set in the same grotesk as the product UI. That is a
+   perfectly legible way to make an argument read like a feature list.
+
+   A serif does two things a grotesk cannot here. It agrees with the Didone
+   numerals above it and the Didone titling elsewhere on the page, so the chapter
+   is one typographic idea instead of a display face borrowed onto a UI stack. And
+   it gives every word a modulated stroke and a bracketed serif to be recognised
+   by, which is what carries a word-shape at reading size over a picture — the
+   thing a uniform-stroke sans is worst at.
+
+   What did *not* change is the weight reasoning, which is load-bearing: reversed
+   type optically thins, so 400 over this background renders lighter than the same
+   weight does on paper and the paragraphs dissolve into the frame at the exact
+   moment the reader is asked to read them. 500, and not 600 — 600 across four
+   paragraphs reads as four alerts rather than as prose. Slightly positive tracking
+   for the same reason as the weight: reversed text needs its counters opened, not
+   tightened.
+
+   A step larger than the sans it replaces (19-24px against 18-23px) because
+   Spectral's x-height is smaller than Inter's at a given size, so matching the em
+   would have been a reduction in the only measurement that decides whether a
+   paragraph is comfortable.
+
+   ── The measure ──
+   Held in characters and centred in the block, which is what makes the centre
+   alignment above work rather than merely look symmetrical: 44ch puts every beat
+   at three or four lines, and centred type stops reading as a statement somewhere
+   around five. 44 rather than the 46 this was, because `ch` is the advance of "0"
+   and Spectral's is narrower than Inter's relative to its lowercase — 46 of them
+   held the same physical width but bought two more words per line. The box itself
+   is wider (720px) so the numeral and the rule have room to be the wider elements
+   they should be. */
+.why-beat-body {
+  max-width: 44ch;
+  margin: 0 auto;
+  font-family: var(--prose);
+  font-size: clamp(19px, 1.7vw, 24px);
+  font-weight: 500;
+  line-height: 158%;
+  letter-spacing: 0.004em;
+  color: var(--w-read);
+  /* A tight dark halo, not a drop shadow. The scrim below carries most of the
+     contrast, but the copy's first line sits near the top of the scrim's ramp
+     where the tunnel's cables are still bright — and a bright filament crossing
+     a stem is what makes a word take two passes to read. Blur radius under a
+     pixel and a half so it densifies the edge instead of smudging it. */
+  text-shadow: 0 1px 2px rgba(0, 1, 6, 0.9), 0 0 12px rgba(0, 1, 6, 0.7);
+  text-wrap: pretty;
+  will-change: transform, opacity;
+}
+
+/* Word boxes for the set-in reveal. No clip box and no `will-change`: there are
+   ~150 of these, and promoting every one to its own layer costs more than the
+   effect is worth. GSAP animates opacity and a 12px lift, both of which
+   composite fine without the hint. */
+.why-bword {
+  display: inline-block;
+}
+
+/* The closing beat is the thesis the whole chapter has been building to, so it
+   changes voice: much larger, in the headline ink, and set to a narrower measure
+   so it reads as a statement rather than as more body copy. It is also the only
+   paragraph revealed word by word — a wipe across 40 words of body copy reads as
+   a loading state, but across two short sentences it reads as type being set.
+
+   It used to change *face* as well, into the chapter's Bodoni. That is still the
+   one thing it does not do, and the reason has not moved even though the argument
+   around it is now set in a serif too. The thesis is four lines of running prose,
+   and a Didone is a display face: its hairlines all but vanish reversed out of a
+   near-black frame, its ball terminals and tight apertures slow a reader down by
+   design, and 'isn't' / 'it's' in an italic-contrast serif at this size read as
+   ornament before they read as words. The sentence the whole chapter is built to
+   deliver was the hardest thing in it to actually read.
+
+   So the voice change is carried by size, weight and measure instead — 26-40px
+   against the beats' 19-24px, 600 against their 500, and a 26ch measure against
+   their 44ch — all in the same face the argument is set in. Same hierarchy, no
+   comprehension cost. The Didone stays where it belongs: the numerals, which are
+   two glyphs read at a glance and never read as language.
+
+   Tracking is barely negative where the sans wanted -0.012em. Optical correction
+   at display size is a property of the face, not of the size: a tightly fitted
+   grotesk needs pulling in when it is enlarged, and a text serif is already fitted
+   for prose — pull it in and the serifs of adjacent letters start to touch. */
+/* Sized so the thesis' block stays close to the height of the three beats
+   before it. Set larger it ran to five lines, which pushed the numeral and the
+   rule most of the way up the frame — the closing statement arriving in a
+   different place from the four that set it up. */
+.why-beat.is-thesis .why-beat-body {
+  max-width: 26ch;
+  margin-inline: auto;
+  font-size: clamp(26px, 2.6vw, 40px);
+  font-weight: 600;
+  line-height: 134%;
+  letter-spacing: -0.004em;
+  color: var(--w-ink);
+  /* The words are gradient-filled boxes, so the paragraph's own halo would show
+     through them — the shadow moves onto each word below as a drop-shadow. */
+  text-shadow: none;
+}
+
+.why-tword {
+  display: inline-block;
+  overflow: hidden;
+  padding: 0.14em 0.03em 0.2em;
+  margin: -0.14em -0.03em -0.2em;
+}
+
+/* A hint of the wash the title is filled with, so the thesis still reads as the
+   question's answer — but only a hint. The ramp now runs white to a pale tint
+   rather than down into a mid blue: a gradient across a 42px display line is a
+   finish, the same gradient across four lines of prose takes value out of the
+   bottom of every word. */
+.why-tword i {
+  display: inline-block;
+  font-style: normal;
+  background: linear-gradient(176deg, #ffffff 10%, #f4fbfe 58%, #dceff8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* Backs the clipped fill without fogging it. Applied per word rather than to
+     the paragraph so it survives the word-by-word reveal — a filter on the
+     paragraph would flatten all 20 boxes into one layer and the transforms
+     GSAP runs on them would then be composited through it. */
+  filter: drop-shadow(0 2px 10px rgba(0, 1, 6, 0.9));
+  will-change: transform;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 4b — the argument, beside the picture rather than on top of it           */
+/* ---------------------------------------------------------------------- */
+
+/* ── Why the copy moved off the middle ───────────────────────────────────
+   The centred block above is the right answer for a frame with no room to spare,
+   and it was the wrong answer for the frame this chapter actually has. Its
+   reasoning is recorded on .why-beat and it turned on one claim: that the board is
+   composed *around* its own subject, so the middle of the shot is the quietest
+   part of it. That claim was true of a board framed at two thirds of the frame's
+   height with a third of the frame as empty air. It stopped being true the moment
+   the camera was pulled in (see the note on the distances in chess/chessScene.js)
+   — a scene that fills the frame has no quiet middle, and a paragraph in the
+   middle of it is a paragraph on the subject.
+
+   Which was the visible defect: the copy sat directly over the arc, the moving
+   piece and the phantom line, carrying an ellipse of darkening with it to stay
+   legible. The chapter was hiding its own centrepiece behind the sentence
+   describing it, and paying for the privilege twice — once in the wash, once in
+   the scene's exposure (see the `dim` channel).
+
+   So on any frame wide enough to hold both, the argument is a column down the left
+   and the camera composes the subject into the right (placeSide). Nothing overlaps,
+   nothing needs hiding, and the scene gets the whole frame it was pulled in to
+   fill. The copy also gets something it never had centred: a fixed left edge, which
+   is what lets four consecutive paragraphs read as one continuous argument instead
+   of four separate placards.
+
+   ── Why this gate, and why it is stated twice ──
+   Aspect *and* width, because either alone gets it wrong. Aspect alone lets a
+   900x620 window — landscape by any measure — try to fit a reading column beside a
+   board and fail at both. Width alone puts a column beside the board on a 1024x1300
+   tablet, where the frame is tall and the board wants the middle.
+
+   1000px and 85/100 are also in chess/chessScene.js as SIDE_COPY_MIN_WIDTH and
+   LANDSCAPE_ASPECT. They have to agree: the camera composing for a side column that
+   CSS has not laid out is a shot with a hole in the left of it, and the reverse is a
+   paragraph across a board. Two files, one decision — if either number changes, both
+   change. */
+@media (min-aspect-ratio: 85/100) and (min-width: 1000px) {
+  /* The ground the column is read against. See the note on .why-scrim for why this
+     is a directional ramp and not the frame-wide ellipse this file used to carry.
+
+     Every stop is measured against the two things either side of it. It is at its
+     deepest over the gutter and the column, thins through the 38-56% band where the
+     copy's longest lines end, and is gone by 72% — well short of the board's own
+     subject, which placeSide has moved to around 59% of the width. */
+  .why-scrim {
+    display: block;
+    background: linear-gradient(
+      90deg,
+      rgba(0, 1, 6, 0.9) 0%,
+      rgba(0, 1, 6, 0.86) 14%,
+      rgba(0, 1, 6, 0.7) 30%,
+      rgba(0, 1, 6, 0.4) 46%,
+      rgba(0, 1, 6, 0.14) 60%,
+      rgba(0, 1, 6, 0) 72%
+    );
+  }
+
+  /* Held to the left gutter and vertically centred. The width is a measure
+     expressed as a box: 27rem is about 42 characters at the size the body resolves
+     to here, which is the same three-or-four-line beat the centred layout was tuned
+     for; the 36vw term is what keeps it from taking half of a 1000px frame. */
+  .why-beat {
+    left: var(--w-gutter);
+    width: min(27rem, 36vw);
+    /* Nothing to translate: the box is held to a real offset on the x axis and
+       centred by auto margins on the y. See the note on the base rule for why a
+       translate here would be a channel the timeline also writes to. */
+    translate: none;
+    text-align: left;
+  }
+
+  /* The block's ground is the frame's edge now, and two grounds is one too many:
+     stacked, the ellipse put a visibly darker patch inside an already-dark band and
+     the copy looked like it was sitting on a card. */
+  .why-beat::before {
+    display: none;
+  }
+
+  /* Redrawn from the left, in both senses. The centred layout's rule is brightest
+     in the middle and grows from the middle, because that is where its numeral sits;
+     over a left-aligned block both of those point at nothing. */
+  .why-beat-rule {
+    transform-origin: left;
+    background: linear-gradient(
+      90deg,
+      rgba(155, 216, 237, 0.6) 0%,
+      rgba(155, 216, 237, 0.34) 44%,
+      rgba(155, 216, 237, 0.08) 78%,
+      transparent 100%
+    );
+  }
+
+  .why-beat-label {
+    justify-content: flex-start;
+  }
+
+  /* The column *is* the measure here, so the character caps come off — left at 44ch
+     and 26ch they would win against a narrower column at some widths and not at
+     others, which is a measure that changes with the viewport for no reason the
+     reader can see. */
+  .why-beat-body,
+  .why-beat.is-thesis .why-beat-body {
+    max-width: none;
+    margin-inline: 0;
+  }
+
+  /* A step down from the centred layout's 40px ceiling. The thesis is the tallest
+     of the four blocks by half again, and in a 27rem column at 40px it ran to seven
+     lines — which pushed its numeral most of the way up the frame, so the closing
+     statement arrived somewhere the four that set it up had not been. */
+  .why-beat.is-thesis .why-beat-body {
+    font-size: clamp(26px, 2.2vw, 34px);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* 5 — the figure                                                          */
+/* ---------------------------------------------------------------------- */
+
+/* In front of the copy, which is the brief: the argument appears in the
+   background of the falling model. By the time the beats arrive the pawn is a
+   fraction of its title size and heading for the vanishing point, so being the
+   nearer layer costs the copy nothing. */
+.why-figure {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.why-model {
+  position: absolute;
+  inset: 0;
+  /* The renderer listens on the window, so it does not need events here, and
+     letting the canvas swallow them would break text selection over it. */
+  pointer-events: none;
+}
+
+/* Ground pool. On a near-black stage a dark ellipse is invisible, so what welds
+   the figure to the floor is the light it stands in — a wide soft pool of the
+   page's accent with a tight dark core at the base for contact.
+   --think-base / --think-x / --think-spread / --think-alpha are published here
+   every frame by ThinkingModel, the only thing that knows where the base
+   actually projects to; the fallbacks only cover the frames before the bounding
+   box has been measured. Faded out at the top of the descent — a contact shadow
+   is a claim about a floor, and there isn't one any more. */
+.why-contact {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(min(30vmin, 340px) * var(--think-spread, 1));
+  height: calc(min(5.6vmin, 60px) * var(--think-spread, 1));
+  translate: calc(-50% + var(--think-x, 0px))
+    calc(-50% + var(--think-base, 30svh));
+  border-radius: 50%;
+  opacity: var(--think-alpha, 1);
+  background: radial-gradient(
+    closest-side,
+    rgba(168, 224, 243, 0.44) 0%,
+    rgba(120, 190, 214, 0.18) 46%,
+    rgba(120, 190, 214, 0) 80%
+  );
+  filter: blur(11px);
+}
+
+/* No figure, no light it stands in. ThinkingModel sets this attribute when the
+   browser refused it a WebGL context (see its metricsRef contract), which is a
+   real state on this page — the chapter asks for three contexts and browsers cap
+   how many a document may hold. `display` rather than opacity, because the
+   scroll timeline writes an inline opacity onto this element and inline wins:
+   left visible, the pool is a bright smudge sitting on an empty stage. */
+.why-contact[data-think-off] {
+  display: none;
+}
+
+/* Ambient occlusion pass: without a tight dark core the pool alone reads as a
+   decorative glow the figure happens to be near. */
+.why-contact::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 40%;
+  height: 40%;
+  translate: -50% -44%;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    rgba(0, 1, 6, 0.72) 0%,
+    rgba(0, 1, 6, 0) 100%
+  );
+  filter: blur(6px);
+}
+
+/* ---------------------------------------------------------------------- */
+/* 6 — the rail                                                            */
+/* ---------------------------------------------------------------------- */
+
+/* Four marks reporting how deep the reader is, and the answer to the one thing
+   putting the argument inside a pin took away: each mark is a jump to its beat's
+   settled frame, so re-reading out of order still costs nothing. Set quiet and
+   small — it is an orientation aid beside an effect, not a second thing to
+   read. */
+/* Top right, which is the one quadrant of the frame nothing else claims: the
+   copy is a left column anchored to the bottom, the pawn falls down the middle,
+   and the thesis — the tallest of the four beats by half again — reaches high
+   enough up the left edge to collide with anything parked there. */
+.why-rail {
+  position: absolute;
+  right: var(--w-gutter);
+  top: clamp(88px, 15svh, 170px);
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: clamp(14px, 2.4svh, 22px);
+}
+
+/* ── The rail's step, and why it is a viewport unit ──────────────────────
+   The dots used to be 2px apart, which put the four of them in a 94px stack. That
+   was the right stack for an indicator made of dots and the wrong one the moment
+   the piece became the indicator: a figure tall enough to be read as a chess piece
+   is taller than 24px, so it spanned three of those rows at once and could only ever
+   be *near* the row it was marking.
+
+   So the rail is spaced to the piece instead. The step is 22px of cell plus this
+   gap, and the gap is stated in svh because the figure's height is a fraction of
+   the frame's height too (see RAIL_POSE in WhySection.tsx: 0.69 × frame height ×
+   scale, which at 0.115 is 7.9svh) — the two track each other at every viewport,
+   which a pixel gap cannot do. One beat, one row, one piece standing in it. */
+.why-rail-dots {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 4.6svh, 42px);
+}
+
+/* A wider box than it looks, and deliberately: what is drawn inside is a 10px
+   hairline, and a 10px hit target is not a control. 30x22 is the smallest box that
+   is comfortably clickable while still letting the rail read as four marks rather
+   than four buttons.
+
+   Ticks are flush right against the gutter rather than centred in the cell, so the
+   rail resolves into a single vertical edge — a dial's scale, which is what an index
+   down the side of a frame should look like. */
+.why-rail-dot {
+  /* Positioned because it carries a seat (below), which hangs outside its box. */
+  position: relative;
+  display: grid;
+  align-items: center;
+  justify-items: end;
+  width: 30px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* ── The seats ───────────────────────────────────────────────────────────
+   One per dot, and nothing is ever drawn in any of them. A seat's only job is to
+   be a *position*: the piece that sits in it is a WebGL canvas covering the whole
+   stage, so the one thing it needs from the DOM is where on that stage to be, and
+   railPose reads that off this box (see WhySection.tsx). It is the box's *centre*
+   that matters — the pose is solved against it — so the size only has to be
+   plausible, not exact.
+
+   There used to be one seat, drawn: a lit ring with a pool inside it, at the foot
+   of the rail, on the idea that a piece needs something to stand on. It did not
+   survive the piece becoming a marker. The ring was 47px across and the pawn ~85px
+   tall, so it never read as a plinth under the piece — it read as a circle behind
+   its shoulders, and a circle nothing else on the frame explains. The dot the
+   piece is beside is the mark now, and it is the mark that was already there.
+
+   Left of the dot, because the rail is a column at this width and the dots are
+   pinned to the right gutter: the piece hangs into the frame rather than off the
+   edge of it.
+
+   Sized to the figure now rather than to a plausible small square, and the two axes
+   are sized differently on purpose. The height matches the piece (7.9svh at
+   RAIL_POSE's scale) so a seat is one beat's row. The width is deliberately much
+   narrower than the height, because the pawn is about half as wide as it is tall and
+   the horizontal gap the reader sees is the seat's own slack plus the margin — a
+   square seat put 27px of air between the piece and the tick it is meant to belong
+   to. Fitted to the silhouette it comes down to about twelve. */
+.why-rail-seat {
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  translate: 0 -50%;
+  margin-right: 10px;
+  width: clamp(20px, 4.4svh, 34px);
+  height: clamp(30px, 8svh, 62px);
+  /* It sits over the rail's own hit targets and must never take a click off one. */
+  pointer-events: none;
+}
+
+/* ── The marks, which are no longer points ───────────────────────────────
+   A notch on a dial rather than a dot, and this is the change the piece asked for.
+   The rail used to state the current beat twice: a 6px dot filled with the chapter's
+   accent and ringed with a 4px halo, *and* a lit chess piece standing immediately
+   beside it. Two highlights 16px apart is not emphasis, it is a competition, and the
+   dot won it — it was the brighter, rounder, more familiar object, so the piece read
+   as decoration parked next to the real indicator.
+
+   So the dot gives the job up. What is left is a hairline that lengthens and lights
+   when its beat is on screen: unmistakable as the active row, impossible to mistake
+   for the subject. The piece standing in the row is the point.
+
+   It also reads better for what it is. Four ticks of increasing length against a
+   right-hand edge is a scale, and a scale is a thing you are *at a position on* —
+   which is the one fact this control exists to communicate. */
+.why-rail-dot i {
+  width: 12px;
+  height: 1px;
+  background: rgba(155, 216, 237, 0.38);
+  transition:
+    width 380ms var(--w-ease),
+    background-color 320ms var(--w-ease),
+    box-shadow 380ms var(--w-ease);
+}
+
+.why-rail-dot:hover i {
+  width: 18px;
+  background: rgba(155, 216, 237, 0.66);
+}
+
+.why-rail-dot:focus-visible {
+  outline: 1px solid var(--w-accent);
+  outline-offset: 3px;
+}
+
+/* Longer and lit, and nothing else — no fill to grow, no halo to ring. The glow is
+   a bare drop shadow on a one-pixel line, which on a near-black stage reads as the
+   line being *lit* rather than as a shape with a border. */
+.why-rail-dot.is-current i {
+  width: 22px;
+  background: var(--w-accent);
+  box-shadow: 0 0 10px rgba(155, 216, 237, 0.5);
+}
+
+/* Written by the timeline rather than by React — see syncRail in
+   WhySection.tsx.
+
+   Reserves its own box on *both* axes, and the width is not cosmetic. The count
+   is empty until the beats open, and where the rail is a row (see the narrow
+   block below) the dots sit after it — so a label that sizes to its text is a
+   label that shifts every dot sideways the moment it gets one. That would be a
+   small ugliness on its own; what makes it a correctness problem is that the
+   figure's seat positions are solved from those dots (see railPose), and GSAP
+   resolves those function values whenever a tween first renders or is
+   invalidated by a refresh. Land one of those while the count is still empty and
+   the piece parks 53px from the dot it is supposed to be marking, permanently.
+
+   A fixed box means the dots do not move, so it does not matter when the values
+   are read. 5.6em covers "04 / 04" at both sizes this label is set at, tracking
+   included; text-align keeps the glyphs flush against the dots in both
+   arrangements rather than adrift at the start of a wider box.
+
+   ── Above the scale, not below it ──
+   `order` rather than a change to the markup, because the narrow layout wants these
+   two the other way round and the markup can only be one order.
+
+   It used to be the last thing in the column, which was correct while the four dots
+   were 2px apart: the whole rail stood under 120px tall and the count sat just under
+   it. Spacing the rail to the figure (see .why-rail-dots) made the column two and a
+   half times taller, and a count at the bottom of *that* is a loose readout parked a
+   third of the way down the frame — measured at 1152x720 it landed on the evaluation
+   card during beat 03, which is a label from the interface sitting on a number from
+   the scene.
+
+   Above the ticks it is where a dial's readout belongs, it stays inside the corner
+   the rail already claims, and it cannot walk onto the scene again whatever the
+   rail's height does next. */
+.why-rail-label {
+  order: -1;
+  min-width: 5.6em;
+  min-height: 1.2em;
+  font-family: var(--label);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-align: right;
+  text-transform: uppercase;
+  color: var(--w-ink-dim);
+}
+
+/* ---------------------------------------------------------------------- */
+/* 8 — the close                                                           */
+/* ---------------------------------------------------------------------- */
+
+/* A flat fill raised to opacity 1 as the argument resolves, so the scene the
+   chapter ends on is a known, fully dark value rather than a board still
+   faintly dimmed. There used to be a "dive" through it — a lit hole opening
+   onto a starfield, with streaks, a spark and a bloom carrying the reveal —
+   and that effect is still gone: this layer does nothing but close the frame.
+
+   It is the base the threshold above it opens *from*, which is the only reason
+   it still has to be an exact value rather than merely dark. See layer 9. */
+.why-blackout {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  opacity: 0;
+  pointer-events: none;
+  background: #000106;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 9 — the threshold: the night opening into the pricing chapter's sky      */
+/* ---------------------------------------------------------------------- */
+
+/* The handover, and the last thing the chapter does.
+ *
+ * What it fixes is geometric rather than decorative. The stage is pinned for six
+ * screens, a pinned element has to unpin somewhere, and once it does the stage
+ * still has its own 100svh to roll off the top of the frame before the pricing
+ * chapter's first row can reach it. Overlapping the two sections does not remove
+ * that screen — the pricing sky is opaque, so an overlap slides a page-sized
+ * sheet up over a frame that is still frozen; the note on .pricing-section's -1px
+ * margin has the full account, and it has been tried twice. So the screen exists,
+ * the reader scrolls through it, and the only open question is what is in it.
+ *
+ * Until now, nothing: a flat #000106 slab sliding up off a sky that has stars in
+ * it. That is a hard horizontal line travelling the whole height of the frame
+ * with night above it and space below — precisely the seam SpaceField's
+ * shared-component argument exists to prevent, and the reason the join read as
+ * two pages snapping past each other instead of one continuous move.
+ *
+ * So the stage's last layer is the next chapter's first frame. The base tone
+ * ramps to the sky's, the same star field the pricing chapter mounts is revealed
+ * from the bottom of the frame up, and the light on the far side comes up under
+ * both. By the time the join line is anywhere the reader can see it, the surfaces
+ * either side of it are the same surface: same tone, same stars, same engine.
+ *
+ * Raised to opacity 1 by the same tween as .why-blackout, so the frame the
+ * chapter closes on and the frame the handover opens from are one frame — and
+ * timed against the roll-off rather than the pin, over the identical scroll
+ * distance the pricing chapter measures its own approach against from the other
+ * side of the join. See the threshold timeline in WhySection.tsx for both. */
+
+/* How far the sky has opened, 0-1. Registered because an unregistered custom
+   property is a string to the animation engine and GSAP would swap "0" for "1"
+   in a single frame; inherited because it is written once on this container and
+   read by three layers under it — one of which, the star field, mounts later
+   than the timeline that drives it and so cannot be tweened directly. Same
+   device as --why-fall on the dusk band at the other end of the chapter. */
+@property --why-open {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+.why-threshold {
+  --why-open: 0;
+
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  opacity: 0;
+  pointer-events: none;
+  /* The star field is scaled past its own box and the light on the far side is
+     a 92svh radial sitting low in the frame. Both are cut off here, which is
+     also what keeps either of them off the section below during the roll-off. */
+  overflow: hidden;
+  will-change: opacity;
+}
+
+/* First and last stops are pinned, and that is what makes this provable rather
+   than tuned: 0% is exactly the tone .why-blackout closes the frame to, and 100%
+   is exactly the value .pricing-chapter is painted in. Only the middle stops
+   move, and they move *up*, so the sky rises to meet the reader instead of the
+   band cross-fading — the dusk band's device at the other end of the chapter,
+   run in the opposite direction. */
+.why-threshold-ramp {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    #000106 0%,
+    #01030c calc(90% - var(--why-open) * 55%),
+    #020511 calc(96% - var(--why-open) * 38%),
+    #030716 calc(99% - var(--why-open) * 19%),
+    var(--space-base) 100%
+  );
+}
+
+/* The pricing chapter's sky, mounted one section early.
+ *
+ * Its own flat fill has to come off: .space-field paints var(--space-base) edge
+ * to edge, and here the ramp below it *is* the base tone, on its way to that same
+ * value. Left on, it would cover the ramp with the tone the frame is still
+ * travelling toward and move the step from the bottom of the frame to the top.
+ * Two classes rather than one so the override does not depend on which of the two
+ * stylesheets the bundler emits first — both chapters import SpaceField.
+ *
+ * Revealed from the bottom of the frame upward rather than faded in evenly, so
+ * the sky arrives from the direction the reader is heading. The lower stop sits at
+ * 100% with the frame closed, and that is the load-bearing part: the stage's last
+ * row is the join, so it carries a full-strength field at every frame of the
+ * roll-off and the pricing sky's first row has nothing to disagree with.
+ *
+ * The three depths expand at the same rates the pricing chapter's approach scales
+ * its own field at (SKY_TO in PricingSection.tsx) over the same window, so the two
+ * fields are not merely alike at the join — they are travelling at the same speed
+ * across it. Driven off the inherited property rather than by the timeline because
+ * this layer mounts on approach (see the skyReady gate in the TSX) and a tween
+ * built at setup would have resolved to nothing. */
+.space-field.why-threshold-sky {
+  background: none;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent calc(72% - var(--why-open) * 76%),
+    #000 calc(100% - var(--why-open) * 62%)
+  );
+  mask-image: linear-gradient(
+    180deg,
+    transparent calc(72% - var(--why-open) * 76%),
+    #000 calc(100% - var(--why-open) * 62%)
+  );
+}
+
+.why-threshold-sky .space-stars-far {
+  scale: calc(1 + var(--why-open) * 0.1);
+}
+
+.why-threshold-sky .space-stars-mid {
+  scale: calc(1 + var(--why-open) * 0.24);
+}
+
+.why-threshold-sky .space-stars-near {
+  scale: calc(1 + var(--why-open) * 0.48);
+}
+
+/* The light on the far side, and what makes the screen an approach rather than a
+   fade: it rises into the frame from below as the sky opens. Painted in the hues
+   .pricing-core is painted in, so what comes up here and what the pricing chapter
+   brings up read as one light rather than two.
+
+   Masked away from its own top edge, which is not belt-and-braces: the radial's
+   outermost stop lands about 56px inside the box on a 900px frame, so without the
+   mask the layer ends in a hard horizontal line ruled across the night that is
+   still scrolling away above it. */
+.why-threshold-core {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: min(1600px, 150vw);
+  height: min(900px, 92svh);
+  translate: -50% 0;
+  opacity: 0;
+  background: radial-gradient(
+    58% 54% at 50% 50%,
+    rgba(38, 52, 132, 0.85) 0%,
+    rgba(22, 34, 92, 0.5) 30%,
+    rgba(10, 18, 54, 0.2) 58%,
+    transparent 80%
+  );
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 34%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 34%);
+  will-change: transform, opacity;
+}
+
+/* A ramp this long bands badly on 8-bit displays — it covers about twenty levels
+   over the height of the frame — and the same dot pattern the dusk band and the
+   stage use breaks it up. Feathered off at both ends for the reason it is there:
+   the pattern lifts the pixels it lands on by a few luma, so run edge to edge it
+   would make this layer's first and last rows a texture while the surfaces they
+   have to match are flat. */
+.why-threshold::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  background-image: radial-gradient(
+    rgba(120, 160, 180, 0.07) 1px,
+    transparent 1px
+  );
+  background-size: 3px 3px;
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0,
+    #000 40px,
+    #000 calc(100% - 40px),
+    transparent 100%
+  );
+}
+
+/* The chapter's run-out band is gone too, and predates all of this.
+ *
+ * It was a flat #000106 strip — 240-440px of it — whose stated job was to give
+ * the closing argument somewhere to breathe out into. Its real effect was to
+ * add a third of a screen of nothing to a gap between two pinned stages that
+ * was already too long.
+ *
+ * So the stage's last row meets the pricing stage's first row directly, and
+ * .pricing-section's -1px margin covers the sub-pixel hairline between them.
+ * Adding a band back is also what the threshold above deliberately does not do:
+ * it composes the handover inside the screen the roll-off already costs, rather
+ * than buying a smoother join with more page. */
+
+/* ---------------------------------------------------------------------- */
+/* Narrow screens                                                          */
+/* ---------------------------------------------------------------------- */
+
+@media (max-width: 860px) {
+  /* The shaft is sized in vw, so it has to open up as the frame narrows or it
+     stops being a shaft and becomes a stripe.
+
+     68vw, not the 86vw this was. The shaft is placed on the figure now rather than
+     on the middle of the frame (see --why-shaft-x), and a box nearly as wide as the
+     frame has nowhere to be placed: the offset gets clamped back to almost nothing
+     to keep the mask's own edge from being cut, so the light went back to falling
+     beside the pawn at exactly the widths where the pawn is furthest off centre.
+     68vw leaves enough slack for the offset and is still three times the figure's
+     width at this breakpoint, which is what keeps it a shaft. */
+  .why-shaft {
+    width: 68vw;
+  }
+
+  /* The argument comes in front of the figure at this width. On a wide frame the
+     copy is a centred block in the quiet middle of the shot and the fall is
+     drifted right (see FALL_POSE), so the two barely meet and the figure can stay
+     the nearer layer as the brief asks. At this width the copy takes nearly the
+     whole measure, so a figure in front of it puts a silhouette through the middle
+     of the first line of every beat. The copy wins here: a paragraph you can read
+     half of is not a layering effect. */
+  .why-beats {
+    z-index: 6;
+  }
+
+  /* A hole this size on a narrow frame is most of the screen, which reads as the
+     backlight coming on rather than as the frame being broken open under the
+     cursor. */
+  .why-night {
+    --why-lens-r: clamp(120px, 32vmin, 260px);
+  }
+
+  /* The block runs to five or six lines at this width instead of three, so its
+     ground reaches further down and needs a touch more of it — a taller box against a
+     board that fills more of the frame behind it. */
+  .why-beat::before {
+    inset: -8% -12%;
+    background: radial-gradient(
+      62% 60% at 50% 50%,
+      rgba(0, 1, 6, 0.86) 0%,
+      rgba(0, 1, 6, 0.74) 44%,
+      rgba(0, 1, 6, 0.4) 72%,
+      rgba(0, 1, 6, 0.1) 90%,
+      rgba(0, 1, 6, 0) 100%
+    );
+  }
+
+  /* The rail is a row along the top at this width (see below), so the dots run
+     left to right and there is no column for a seat to sit beside. Under the dot
+     instead, hanging into the frame — which is the same relationship as the wide
+     layout's, rotated with the rail.
+
+     Both axes fitted to the piece, as in the wide layout, but rotated with it: the
+     height is now the one that has to clear something. A seat sized to the figure's
+     width would centre a ~9svh silhouette in a 30px box and put its crown back
+     through the row of ticks above it, so the seat is as tall as the piece and the
+     margin is what stands it clear of the row. */
+  /* Fitted to the piece as it is actually drawn here, which is smaller than the pose
+     alone says: the renderer tapers the figure on narrow frames so it stays a
+     companion to the type rather than a backdrop it has to survive (fitScale in
+     ThinkingModel — ~0.72 at 1:2), so the same RAIL_POSE scale lands at about
+     5.7svh here against 7.9svh on a wide frame. A seat sized for the wide figure
+     would centre this one in a box half again too tall and leave it floating. */
+  .why-rail-seat {
+    top: 100%;
+    right: auto;
+    left: 50%;
+    translate: -50% 0;
+    margin: 12px 0 0;
+    width: clamp(22px, 6vmin, 34px);
+    height: clamp(34px, 6svh, 58px);
+  }
+
+  /* Centred in their cells rather than flush right: the ticks run left to right at
+     this width, so there is no vertical edge for them to line up against and the
+     scale reads as a segmented bar instead. */
+  .why-rail-dot {
+    justify-items: center;
+  }
+
+  /* A row along the top rather than a column down the side: at this width the
+     copy runs the full measure and there is no side column left. */
+  .why-rail {
+    left: var(--w-gutter);
+    right: var(--w-gutter);
+    top: clamp(72px, 12svh, 120px);
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* Back to a tight rhythm. The wide layout's step is spaced to the *height* of the
+     figure because the piece steps down a column there; in a row the piece steps
+     sideways, and what it needs clearance from is the next tick's cell — which the
+     30px cell already provides. */
+  .why-rail-dots {
+    flex-direction: row;
+    gap: 4px;
+  }
+
+  /* Back to the end of the row. The count moved above the ticks in the wide layout
+     because the column grew tall enough for a trailing label to drift onto the scene;
+     a row does not grow downward, so there is nothing here to fix — and `order: -1`
+     under `row-reverse` would put the count on the *right* of the ticks, hard against
+     the gutter, with the piece hanging under a tick in the middle of the frame. */
+  .why-rail-label {
+    order: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .why-beat-body {
+    font-size: clamp(17px, 4.5vw, 20px);
+    line-height: 164%;
+  }
+
+  .why-beat-num {
+    font-size: clamp(32px, 11vw, 52px);
+  }
+
+  .why-beat-label {
+    /* The dash plus a typed label plus a caret does not fit on one line at this
+       width, so the row wraps and the dash gets its own line. */
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    font-size: 11.5px;
+  }
+
+  .why-beat.is-thesis .why-beat-body {
+    font-size: clamp(23px, 6.6vw, 34px);
+    max-width: 22ch;
+  }
+
+  .why-rail-label {
+    font-size: 10px;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Reduced motion — no pin, no fall, no tunnel                             */
+/* ---------------------------------------------------------------------- */
+
+/* The chapter unrolls as an ordinary editorial block: the question, the figure,
+   then the four beats as prose. Neither the tunnel nor the shatter effect is
+   mounted in this mode (see the `motion` branch in WhySection.tsx), so there is
+   nothing here to freeze mid-transition — this is a layout, not a fallback
+   state.
+
+   It is also the chapter's only motion-free reading path, which is the price of
+   moving the argument inside the pin. Everything below exists so that price is
+   actually paid. */
+.why-section.is-static .why-stage {
+  height: auto;
+  padding: clamp(56px, 10svh, 120px) 0 clamp(64px, 12svh, 140px);
+}
+
+/* The handover has nothing to hand over in this mode. There is no pin, so there
+   is no screen of roll-off to compose, and the stage is a flowing column rather
+   than a frame — a full-bleed layer over it would be a gradient the height of an
+   article. The step at the join is covered from the other side instead: the
+   pricing chapter ramps its own first rows back to #000106 under exactly this
+   preference, and its stylesheet says so. */
+.why-section.is-static .why-threshold {
+  display: none;
+}
+
+.why-section.is-static .why-night {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* The scrim is sized against a viewport frame and would darken the middle of a
+   page-height column. Nothing is being read over a lit tunnel here. */
+.why-section.is-static .why-hems::after,
+.why-section.is-static .why-vignette {
+  display: none;
+}
+
+/* Blocks in flow rather than layers in a frame. */
+.why-section.is-static .why-title {
+  position: relative;
+  inset: auto;
+  height: min(34svh, 300px);
+  padding-inline: var(--w-gutter);
+}
+
+/* The outline exists to trace the letters the figure covers, and in flow the
+   figure is a block below the title rather than a layer through it — so there is
+   nothing to trace, and the ghost would only double-strike every glyph. The sheen
+   goes for the same reason it is gated on --why-lens-a elsewhere: there is no
+   moving light in a static composition. */
+.why-section.is-static .why-title-ghost,
+.why-section.is-static .why-title-sheen {
+  display: none;
+}
+
+/* The parallax is a calc() off the pointer's eased position, and the pointer is
+   only ever centred by the motion branch of the timeline — which does not run
+   here. Left alone, --why-lens-x holds its registered initial 0px and the word
+   sits permanently shoved 0.7% of the frame off centre. It cannot be defaulted to
+   50% in CSS either: the property is registered as a <length>, so a percentage is
+   invalid for it. Dropped outright instead, which is what a composition with no
+   cursor in it wants anyway. */
+.why-section.is-static .why-title-layer {
+  translate: none;
+}
+
+.why-section.is-static .why-figure {
+  position: relative;
+  inset: auto;
+  height: min(50svh, 420px);
+  margin-bottom: clamp(24px, 5svh, 56px);
+}
+
+/* Positioned from canvas-relative metrics the renderer publishes, which cannot
+   follow an element that is no longer full-height. Better dropped than left as a
+   detached smudge. */
+.why-section.is-static .why-contact {
+  display: none;
+}
+
+.why-section.is-static .why-beats {
+  position: relative;
+  inset: auto;
+  max-width: 780px;
+  margin: 0 auto;
+  padding-inline: var(--w-gutter);
+}
+
+/* Back to a reading column: in flow, full width of its container, and
+   left-aligned. The centre alignment is a property of the *frame* — one statement
+   at a time in the middle of a shot — and four consecutive left-aligned
+   paragraphs down a page is the same argument in the register a page actually
+   reads in. Every offset the pinned layout sets has to be unset here, `top` and
+   `translate` included, or the block sits half a viewport above where it belongs. */
+.why-section.is-static .why-beat {
+  position: relative;
+  left: auto;
+  top: auto;
+  bottom: auto;
+  width: auto;
+  /* The pinned layout's vertical centring, undone: `height: fit-content` and auto
+     block margins centre a stretched absolute box, and in flow they are a block
+     sizing itself by a keyword nobody needs and four blocks with no space between
+     them. The stacking margins are set a few rules further down. */
+  height: auto;
+  margin-block: 0;
+  translate: none;
+  text-align: left;
+}
+
+.why-section.is-static .why-beat-label {
+  justify-content: flex-start;
+}
+
+.why-section.is-static .why-beat-body,
+.why-section.is-static .why-beat.is-thesis .why-beat-body {
+  margin-inline: 0;
+}
+
+/* Nothing is being read over a lit board in this mode — the board is not mounted at
+   all — so the copy's ground is a dark patch behind text on a dark page. */
+.why-section.is-static .why-beat::before {
+  display: none;
+}
+
+/* And the frame's own reading edge goes for the same reason, one step further out:
+   the side-column layout's ramp is lighting for a picture, and in this mode there is
+   no picture and no side column — just a gradient darkening the left of a page. */
+.why-section.is-static .why-scrim {
+  display: none;
+}
+
+.why-section.is-static .why-beat + .why-beat {
+  margin-top: clamp(48px, 9svh, 104px);
+}
+
+/* Reading surface rather than a caption over an effect: with the whole page to
+   itself the copy goes back up to the size it was set at when it had one.
+   The measure is restated because the side-column block above drops it — there the
+   column *is* the measure, and here there is no column, so without this the
+   paragraphs would run the full 780px of .why-beats. */
+.why-section.is-static .why-beat-body {
+  max-width: 44ch;
+  font-size: clamp(18px, 1.8vw, 24px);
+}
+
+.why-section.is-static .why-beat.is-thesis .why-beat-body {
+  max-width: 28ch;
+  font-size: clamp(26px, 3.3vw, 48px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .why-glow-a,
+  .why-glow-b,
+  .why-beat-caret {
+    animation: none;
+  }
+
+  .why-rail-dot i {
+    transition: none;
+  }
+
+  /* The band is a plain ramp again: nothing is scrubbing --why-fall, and the two
+     travelling layers would sit frozen mid-transition. */
+  .why-dusk-light,
+  .why-dusk-stars {
+    display: none;
+  }
+}

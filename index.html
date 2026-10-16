@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Two families carry the light "chapter" of the page (the fog reveal and
+         the feature story): Bodoni Moda as the display face — a Didone gives
+         the section real editorial presence at large sizes, which the system
+         UI stack the dark hero runs on cannot — and JetBrains Mono for
+         labels, indices and spec values, where it reads as chess notation.
+         `opsz` is requested so Bodoni thins its hairlines correctly at
+         display sizes instead of being optically scaled up from text cuts. -->
+    <!-- Cinzel joins them for one job: the footer's oversized wordmark. An
+         inscriptional Roman capital outlines far better than a Didone at that
+         scale — Bodoni's hairlines sit a whisker from its stems, so a stroked
+         contour doubles up into noise, while Cinzel's near-uniform strokes
+         give one clean line per letter for the glow to sit on. -->
+    <!-- Spectral is the reading face (--prose in index.css): the Why chapter's
+         four beats are long-form copy reversed out of a lit board, which is the
+         one place on the page where a Didone cannot go and the system sans has no
+         business being. A screen-first serif with moderate stroke contrast keeps
+         the editorial voice and survives being set over artwork. 500 and 600 only
+         — reversed type optically thins, so nothing here is set lighter. -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500;6..96,600&family=Cinzel:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Spectral:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <title>Chessee — See the board like a real grandmaster</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,372 @@
+/* ---------------------------------------------------------------------- */
+/* Footer — sign-off band, then the utility strip                          */
+/* ---------------------------------------------------------------------- */
+
+/* Art direction: the darkest surface on the page. The FAQ hands over a flat
+   #000106 and the footer steps *below* it to a true black, which is the one
+   place a value change is useful — it reads as the page closing rather than as
+   another chapter starting. Type drops a step in size and rises a step in
+   letter-spacing: everything here is reference material, not reading. */
+
+.site-footer {
+  --f-ink: #e7f1f6;
+  --f-ink-soft: #9db2be;
+  --f-ink-dim: rgba(157, 178, 190, 0.58);
+  --f-line: rgba(155, 216, 237, 0.12);
+  --f-accent: #9bd8ed;
+  --f-gutter: clamp(24px, 6vw, 96px);
+
+  position: relative;
+  isolation: isolate;
+  background: #000004;
+  border-top: 1px solid var(--f-line);
+  overflow: hidden;
+  color: var(--f-ink-soft);
+}
+
+.footer-atmosphere {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* A single low pool of light behind the sign-off, so the band has a floor and
+   the utility strip falls away into the black. Kept faint on purpose: the
+   wordmark now sits in the same space, and two light sources stacked in one
+   band is what made this corner read hot. */
+.footer-glow {
+  position: absolute;
+  left: 26%;
+  top: -8%;
+  width: min(880px, 86vw);
+  height: min(500px, 56svh);
+  translate: -50% 0;
+  opacity: 0.3;
+  background: radial-gradient(
+    50% 50% at 50% 50%,
+    rgba(112, 182, 212, 0.1) 0%,
+    rgba(52, 108, 142, 0.04) 46%,
+    transparent 100%
+  );
+}
+
+/* The wordmark, outlined, lighting up under the cursor (see TextHoverEffect).
+   A layer behind the sign-off and the columns, inset to the shell's own
+   gutters so the letters align with the content rather than the viewport
+   edge. Height comes from the svg's aspect ratio, and the block is centred on
+   the band so the word crosses the copy at its optical middle. */
+.footer-bg-mark {
+  position: absolute;
+  left: var(--f-gutter);
+  right: var(--f-gutter);
+  top: 50%;
+  translate: 0 -50%;
+  z-index: 0;
+  /* Decoration only — never intercept a click meant for the links above it. */
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Shell                                                                  */
+/* ---------------------------------------------------------------------- */
+
+.footer-inner {
+  position: relative;
+  z-index: 1;
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: clamp(56px, 10svh, 104px) var(--f-gutter) clamp(40px, 7svh, 72px);
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.5fr);
+  gap: clamp(40px, 6vw, 88px);
+  align-items: start;
+}
+
+/* Both content blocks are lifted over the watermark. The mark is positioned
+   and they are not, and a positioned box paints above its static siblings
+   whatever the source order — so they need a stacking position of their own. */
+.footer-sign,
+.footer-nav {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Sign-off                                                               */
+/* ---------------------------------------------------------------------- */
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.footer-mark {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--f-line);
+  border-radius: 9px;
+  /* Same stack the pricing cards use for their piece glyphs. The display and
+     label faces do not carry the chess block, and on Windows the fallback is
+     Segoe UI Emoji — which renders ♞ as a full-colour emoji instead of a
+     monochrome symbol that can inherit the accent ink. */
+  font-family: "Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols 2",
+    "DejaVu Sans", sans-serif;
+  font-variant-emoji: text;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--f-accent);
+  background: rgba(155, 216, 237, 0.06);
+}
+
+.footer-wordmark {
+  font-family: var(--display);
+  font-size: clamp(24px, 2.2vw, 30px);
+  letter-spacing: -0.01em;
+  color: var(--f-ink);
+}
+
+.footer-line {
+  margin: 20px 0 0;
+  max-width: 26ch;
+  font-family: var(--display);
+  font-size: clamp(19px, 1.7vw, 25px);
+  font-style: italic;
+  line-height: 1.32;
+  color: var(--f-ink);
+}
+
+/* Quieter than the hero's CTA on purpose — same words, but this is an exit,
+   not the page's opening ask. An outlined pill that fills on hover. */
+.footer-cta {
+  margin-top: 26px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 22px;
+  border: 1px solid rgba(155, 216, 237, 0.34);
+  border-radius: 999px;
+  font-family: var(--label);
+  font-size: 11.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--f-ink);
+  transition:
+    background-color 0.26s ease,
+    border-color 0.26s ease,
+    color 0.26s ease;
+}
+
+.footer-cta svg {
+  width: 17px;
+  height: 17px;
+  transition: translate 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.footer-cta:hover {
+  border-color: var(--f-accent);
+  background: rgba(155, 216, 237, 0.12);
+  color: var(--f-accent);
+}
+
+.footer-cta:hover svg {
+  translate: 4px 0;
+}
+
+.footer-tokens {
+  margin: 18px 0 0;
+  font-family: var(--label);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--f-ink-dim);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Utility columns                                                        */
+/* ---------------------------------------------------------------------- */
+
+.footer-nav {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(28px, 3.5vw, 56px);
+}
+
+.footer-col-title {
+  margin: 0 0 16px;
+  font-family: var(--label);
+  font-weight: 400;
+  font-size: 10.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--f-ink-dim);
+}
+
+.footer-col ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 2px;
+}
+
+.footer-col a {
+  /* Grid rather than block so the optional note sits under the label without
+     a second wrapper, and the whole two-line stack stays one hit target. */
+  display: grid;
+  gap: 2px;
+  /* Negative inline margin lets the padded target extend past the column's
+     text edge without indenting the labels away from the title above them. */
+  margin-inline: -10px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  font-size: 14.5px;
+  line-height: 1.4;
+  text-decoration: none;
+  color: var(--f-ink-soft);
+  transition:
+    color 0.22s ease,
+    background-color 0.22s ease;
+}
+
+.footer-col a i {
+  font-style: normal;
+  font-family: var(--label);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--f-ink-dim);
+}
+
+.footer-col a:hover {
+  color: var(--f-ink);
+  background: rgba(155, 216, 237, 0.05);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Base strip                                                             */
+/* ---------------------------------------------------------------------- */
+
+.footer-base {
+  position: relative;
+  z-index: 1;
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: 22px var(--f-gutter) clamp(28px, 4svh, 40px);
+  border-top: 1px solid var(--f-line);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 28px;
+  font-family: var(--label);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--f-ink-dim);
+}
+
+.footer-credit {
+  margin-right: auto;
+}
+
+.footer-credit a {
+  color: var(--f-ink-soft);
+  text-decoration: none;
+  border-bottom: 1px solid var(--f-line);
+  transition:
+    color 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.footer-credit a:hover {
+  color: var(--f-accent);
+  border-color: var(--f-accent);
+}
+
+.footer-fine {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+}
+
+.footer-fine a {
+  color: var(--f-ink-dim);
+  text-decoration: none;
+  transition: color 0.22s ease;
+}
+
+.footer-fine a:hover {
+  color: var(--f-ink);
+}
+
+/* One shared focus treatment for every link in the footer, so keyboard
+   position is never ambiguous on the page's quietest surface. */
+.site-footer a:focus-visible {
+  outline: 2px solid var(--f-accent);
+  outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Narrow screens                                                         */
+/* ---------------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .footer-inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(40px, 6svh, 60px);
+  }
+
+  .footer-line {
+    max-width: none;
+  }
+
+  .footer-glow {
+    left: 50%;
+    opacity: 0.34;
+  }
+
+}
+
+@media (max-width: 640px) {
+  .footer-nav {
+    /* Two columns down to the narrowest width rather than one: these are short
+       labels, and a single column would run the strip to four screens. */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 30px 20px;
+  }
+
+  .footer-cta {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .footer-base {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .footer-credit {
+    margin-right: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer-cta,
+  .footer-cta svg,
+  .footer-col a,
+  .footer-credit a,
+  .footer-fine a {
+    transition: none;
+  }
+
+  .footer-cta:hover svg {
+    translate: 0;
+  }
+}

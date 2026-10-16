@@ -1,0 +1,120 @@
+/* ---------------------------------------------------------------------- */
+/* TextHoverEffect                                                         */
+/* ---------------------------------------------------------------------- */
+
+.the-svg {
+  display: block;
+  width: 100%;
+  /* Height from the viewBox ratio, so the word scales with the container's
+     width and never gets letterboxed by a fixed box of a different aspect. */
+  height: auto;
+  /* No clipping: the bloom deliberately spills past the band's edges. */
+  overflow: visible;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.the-text {
+  fill: transparent;
+  /* Cinzel for the mark. Bodoni is the page's display face, but stroking a
+     Didone's contour at this size doubles every hairline against its stem and
+     the letters turn to mesh — an inscriptional Roman capital has near-uniform
+     strokes, so each letter comes back as one clean line. Bodoni stays as the
+     fallback so the mark degrades to the house face, not to Times. */
+  font-family: "Cinzel", var(--display, serif);
+  /* Tuned against the 300-unit viewBox for a seven-letter all-caps word, so
+     the mark lands just inside the band's width. Longer words want a smaller
+     value: this scales the glyphs, not the box. */
+  font-size: 56px;
+  font-weight: 500;
+  /* Open tracking is what separates a wordmark from a word at this scale. */
+  letter-spacing: 0.06em;
+  /* User units, so the on-screen weight stays a hairline as the svg scales. */
+  stroke-width: 0.32;
+  paint-order: stroke;
+}
+
+/* The resting mark. It now sits *behind* live copy rather than in a band of
+   its own, so it has to hold at watermark weight — present enough to read as
+   an intentional mark, faint enough that a link label crossing it never has to
+   compete. A step up while the pointer is somewhere in the section. */
+.the-text--rest {
+  stroke: rgba(155, 216, 237, 0.1);
+  transition: stroke 0.5s ease;
+}
+
+.the-svg.is-lit .the-text--rest {
+  stroke: rgba(190, 226, 240, 0.17);
+}
+
+/* Drawn once on reveal, then it just sits on top of the resting copy.
+   Dash length is generous rather than measured — text has no reliable
+   getTotalLength, and overshooting only costs a beat of still frames. */
+.the-text--draw {
+  stroke: rgba(231, 241, 246, 0.11);
+  stroke-dasharray: 1200;
+  stroke-dashoffset: 1200;
+}
+
+/* Both chromatic layers fade in with the pointer, so a mask parked mid-word
+   from a previous hover never shows through. Neither reaches full opacity:
+   ceilings here are the single most effective brightness control in the
+   effect, since the mask and the blur are both already tuned for shape. */
+.the-text--bloom,
+.the-text--lit {
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+
+.the-svg.is-lit .the-text--bloom {
+  opacity: 0.34;
+}
+
+.the-svg.is-lit .the-text--lit {
+  opacity: 0.72;
+}
+
+/* The halo. Thicker than the sharp copy so the blur has something to spread,
+   and screened over what is behind it — on a near-black footer that adds the
+   two together instead of covering, which is how light actually behaves. */
+.the-text--bloom {
+  stroke-width: 0.8;
+  mix-blend-mode: screen;
+}
+
+/* The sharp copy rides on top of its own halo. Barely heavier than the resting
+   hairline: the lit letters should gain temperature, not weight — a wordmark
+   that thickens under the cursor stops reading as one object. */
+.the-text--lit {
+  stroke-width: 0.38;
+  mix-blend-mode: screen;
+}
+
+/* Stroke width lives in user units, so it scales with the svg — at phone
+   widths the hairline thins to well under a device pixel and the mark starts
+   to disappear. Nudge every layer back up where the box is small. */
+@media (max-width: 700px) {
+  .the-text {
+    stroke-width: 0.62;
+  }
+
+  .the-text--bloom {
+    stroke-width: 1.4;
+  }
+
+  .the-text--lit {
+    stroke-width: 0.78;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .the-text--rest,
+  .the-text--bloom,
+  .the-text--lit {
+    transition: none;
+  }
+
+  .the-text--draw {
+    stroke-dashoffset: 0;
+  }
+}

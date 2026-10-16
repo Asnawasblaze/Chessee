@@ -1,0 +1,1170 @@
+/* ---------------------------------------------------------------------- */
+/* Features — pinned editorial story                                       */
+/* ---------------------------------------------------------------------- */
+
+/* Continues the light palette the fog reveal landed on (mirrors the tokens
+   on .features-section) so there is no theme seam between the title reveal
+   and the story. One accent only; every shadow and hairline is tinted with
+   the page's own ink hue rather than neutral black, so the lighting reads as
+   a single source rather than a stack of unrelated effects. */
+.feature-story {
+  --f-ink: #071620;
+  --f-ink-soft: #465e6d;
+  --f-ink-faint: rgba(7, 22, 32, 0.42);
+  --f-line: rgba(10, 48, 68, 0.16);
+  --f-line-soft: rgba(10, 48, 68, 0.08);
+  /* The receding floor grid only. Stronger than the flat hairlines because
+     the perspective compression eats most of its contrast. */
+  --f-line-floor: rgba(10, 48, 68, 0.2);
+  --f-accent: #17789f;
+  --f-accent-soft: rgba(23, 120, 159, 0.1);
+  --f-sky-top: #f8fbfd;
+  --f-sky-mid: #e9f2f8;
+  --f-sky-edge: #d7e6ef;
+
+  /* Premium motion personality: one signature curve, three durations. */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --t-quick: 160ms;
+  --t-base: 260ms;
+  --t-slow: 420ms;
+
+  position: relative;
+  /* A purely *vertical* ramp, so this section's entire first row resolves to
+     exactly --f-sky-top — the same value the fog reveal's stage fades down to
+     at its bottom edge. Any horizontal variation here (the previous version
+     used a large radial, and an overhead white highlight after that) makes
+     the two backgrounds disagree somewhere along the join, which draws a
+     visible line across the page at the handover. Depth in this section comes
+     from the drifting .fs-glow masses instead, which are soft enough that
+     they never reach the top edge at full strength. */
+  background: linear-gradient(
+    180deg,
+    var(--f-sky-top) 0%,
+    var(--f-sky-mid) 48%,
+    var(--f-sky-edge) 100%
+  );
+}
+
+/* ---------------------------------------------------------------------- */
+/* Stage — asymmetric 12-column editorial grid                             */
+/* ---------------------------------------------------------------------- */
+
+/* Columns 2-13 are the content field (max 1440px), 1 and 14 are gutters that
+   absorb the remaining width. Children are placed on real grid columns and
+   deliberately *overlap*: the visual occupies content columns 2-7 and the
+   copy starts at column 7, so the headline crosses the visual's column
+   instead of the two sitting in separate, symmetrical halves. */
+.feature-story .fs-stage {
+  /* How tall the 3D canvas is. Shared, because the contact shadow's offset
+     (--fv-base, published by the renderer) is measured from that canvas'
+     *centre* — so anything that changes the canvas height has to move the
+     shadow's anchor with it. */
+  --fs-visual-h: 100%;
+
+  position: relative;
+  height: 100svh;
+  min-height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns:
+    minmax(clamp(20px, 4vw, 72px), 1fr)
+    repeat(12, minmax(0, 120px))
+    minmax(clamp(20px, 4vw, 72px), 1fr);
+  grid-template-rows: 1fr;
+  align-items: center;
+}
+
+/* ── Ambient background ───────────────────────────────────────────────── */
+.fs-atmosphere {
+  grid-area: 1 / 1 / 2 / -1;
+  position: relative;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.fs-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+}
+
+.fs-glow-a {
+  left: -14%;
+  top: 0%;
+  width: 62%;
+  height: 58%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 255, 255, 0.95),
+    rgba(255, 255, 255, 0) 68%
+  );
+  animation: fs-drift-a 38s ease-in-out infinite alternate;
+}
+
+.fs-glow-b {
+  right: -18%;
+  bottom: -12%;
+  width: 72%;
+  height: 62%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(203, 228, 242, 0.9),
+    rgba(203, 228, 242, 0) 70%
+  );
+  animation: fs-drift-b 50s ease-in-out infinite alternate;
+}
+
+@keyframes fs-drift-a {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(6%, 4%, 0) scale(1.12);
+  }
+}
+
+@keyframes fs-drift-b {
+  from {
+    transform: translate3d(0, 0, 0) scale(1.08);
+  }
+  to {
+    transform: translate3d(-5%, -4%, 0) scale(1);
+  }
+}
+
+/* Receding floor on an 8-cell rhythm — a board seen almost edge-on. This is
+   what the old layout was missing: the figure used to hover in an empty half
+   with only a blur pool under it, which read as unfinished. Masked so it
+   dissolves into the light well before the horizon. */
+@property --fs-floor-y {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+/* `bottom: 0`, not a negative offset. With `transform-origin: 50% 100%` the
+   element's own bottom edge is the pivot the plane lays back from, so pushing
+   the box 14% below the stage put that pivot — and therefore the entire
+   receding plane — off the bottom of the screen. The grid was rendering the
+   whole time, just outside the frame, which is why the lower third of the
+   stage read as blank paper and the scene had nothing to stand on. */
+.fs-floor {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 200%;
+  height: 140%;
+  transform-origin: 50% 100%;
+  /* Tuned up from --f-line-soft (8% ink): at that value the grid was
+     invisible past the first two rows once the perspective compressed it, so
+     the bottom third of the stage read as blank paper and the scene had
+     nothing to stand on. --f-line-floor is still a hairline in the near rows
+     and survives the compression in the far ones. */
+  /* 6.25% of a double-width plane puts eight files across the viewport at the
+     near edge, so the rhythm reads as a board rather than as generic graph
+     paper. */
+  background-image:
+    linear-gradient(90deg, var(--f-line-floor) 1px, transparent 1px),
+    linear-gradient(0deg, var(--f-line-floor) 1px, transparent 1px);
+  background-size: 6.25% 11%;
+  mask-image: radial-gradient(
+    92% 118% at 50% 110%,
+    #000 0%,
+    rgba(0, 0, 0, 0.7) 46%,
+    rgba(0, 0, 0, 0.24) 74%,
+    transparent 96%
+  );
+  -webkit-mask-image: radial-gradient(
+    92% 118% at 50% 110%,
+    #000 0%,
+    rgba(0, 0, 0, 0.7) 46%,
+    rgba(0, 0, 0, 0.24) 74%,
+    transparent 96%
+  );
+  will-change: transform;
+  /* The timeline scrubs --fs-floor-y, not `transform` itself. GSAP writing
+     the transform property directly would drop the perspective/rotateX that
+     make this a floor rather than a flat grid — it recomposes transforms in
+     its own order from the parsed matrix. A custom property keeps the 3D
+     authored here, once, and still animates on the compositor. */
+  /* 70deg at a 660px perspective distance folded a 684px plane down into 118
+     projected pixels — a sliver hugging the very bottom of the frame, which
+     is why the "floor" never read as one. A shallower rake at a much longer
+     focal length projects the same plane over ~320px, so eight-odd ranks are
+     visible receding toward the horizon. */
+  transform: translate(-50%, var(--fs-floor-y)) perspective(1600px)
+    rotateX(64deg);
+}
+
+/* Where the floor runs out. A hair of light along the far edge stops the grid
+   from simply fading into nothing and gives the stage an actual horizon for
+   the scene to stand in front of. */
+.fs-horizon {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 22%;
+  height: 28%;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.6) 48%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  filter: blur(30px);
+}
+
+/* Breaks banding on the large flat gradient. */
+.fs-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.3;
+  background-image: radial-gradient(
+    rgba(9, 40, 56, 0.05) 1px,
+    transparent 1px
+  );
+  background-size: 3px 3px;
+  mix-blend-mode: multiply;
+}
+
+/* Hem: resolves the stage's last rows to exactly --f-sky-edge, which is the
+   value the chapter below opens on directly underneath.
+
+   Every other layer in here reaches the stage's bottom edge carrying something
+   of its own — fs-glow-b is a blue-white mass anchored to the bottom-right,
+   the floor grid's mask is at full strength along its near edge, and fs-grain
+   multiplies a dot pattern over both. So the section's last row arrived lighter
+   on the right, darker on the dots, and never actually equal to the flat tone
+   the next chapter starts from: a visible line ruled across the handover.
+   Fading the last ~100px to the gradient's own end value makes the two sides
+   provably the same colour.
+
+   As ::after it is the atmosphere's last child, so it sits above the floor, the
+   glows and the grain. It is *inside* .fs-atmosphere (z-index 0) on purpose:
+   the chapter numeral (z-index 1) is meant to bleed off the bottom edge, and
+   the visual and copy above it keep their full contrast. */
+.fs-atmosphere::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: clamp(70px, 13svh, 120px);
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(215, 230, 239, 0) 0%,
+    rgba(215, 230, 239, 0.68) 58%,
+    #d7e6ef 94%
+  );
+}
+
+/* ---------------------------------------------------------------------- */
+/* Chapter numeral                                                         */
+/* ---------------------------------------------------------------------- */
+
+/* Set in the display face, unfilled, and cropped by the stage's left edge.
+   Behind the visual, so the two read as different depths — the single
+   biggest change from the old flat two-column split. */
+/* Anchored to the bottom-left and cropped by both edges of the page.
+
+   It used to be centred vertically, which put a 480px-wide numeral directly
+   behind a figure that covers the middle 340px of the same band — so all that
+   ever showed were two unreadable slivers, and the leading zero's outline ran
+   straight through the chapter index rail and its labels. Dropping it to the
+   baseline solves both at once: the rail lives in the vertically-centred band
+   above it, each scene's mass narrows toward its base so the digits
+   read around it, and the numeral now occupies the empty lower-left quarter
+   that was the most obviously unfinished part of the stage. */
+.fs-numeral-stack {
+  grid-area: 1 / 1 / 2 / 9;
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  pointer-events: none;
+  display: grid;
+  place-items: end start;
+  will-change: transform;
+}
+
+.fs-numeral {
+  grid-area: 1 / 1;
+  margin-left: -0.14em;
+  /* Cropped by the stage's bottom edge, so the figures read as bleeding off
+     the page rather than sitting on it. */
+  margin-bottom: -0.22em;
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: clamp(190px, 26vw, 400px);
+  line-height: 0.78;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: transparent;
+  -webkit-text-stroke: 1.25px rgba(23, 120, 159, 0.22);
+  /* A whisper of fill toward the baseline so the outline doesn't read as a
+     wireframe — light catching the inside of the letterform. */
+  background: linear-gradient(
+    172deg,
+    rgba(23, 120, 159, 0.05) 0%,
+    rgba(23, 120, 159, 0.015) 62%,
+    transparent 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  will-change: transform, opacity;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 3D visual                                                               */
+/* ---------------------------------------------------------------------- */
+
+/* One canvas for all three features. Which of the three scenes it is showing is
+   the scroll timeline's business, not this file's — see FeatureVisual. */
+.feature-story .fs-visual {
+  grid-area: 1 / 3 / 2 / 9;
+  position: relative;
+  z-index: 2;
+  height: var(--fs-visual-h);
+  /* Bleeds past its columns on both sides so the scene is not visibly
+     boxed by the grid it sits on. */
+  margin-inline: -6% -4%;
+  touch-action: pan-y;
+}
+
+/* Contact shadow, tinted with the page's ink rather than black, sitting
+   where the active scene's base actually lands in the canvas.
+
+   --fv-base / --fv-spread / --fv-alpha are written here every frame by
+   FeatureVisual, which is the only thing that knows where the *active* scene's
+   floor projects to — and the three scenes differ: a full board sits on the
+   ground, while the engine and the ply stack both levitate and get a weaker
+   pool. The fallbacks are only for the frames before the first measurement. */
+.fs-contact {
+  grid-area: 1 / 3 / 2 / 9;
+  position: relative;
+  align-self: center;
+  justify-self: center;
+  z-index: 1;
+  width: calc(min(34vmin, 400px) * var(--fv-spread, 1));
+  height: calc(min(6.4vmin, 66px) * var(--fv-spread, 1));
+  translate: 0 var(--fv-base, 30svh);
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: var(--fv-alpha, 1);
+  background: radial-gradient(
+    closest-side,
+    rgba(7, 40, 58, 0.3) 0%,
+    rgba(7, 40, 58, 0.13) 44%,
+    rgba(7, 40, 58, 0) 78%
+  );
+  filter: blur(10px);
+}
+
+/* No scene, no shadow. FeatureVisual sets this when the browser refused it a
+   WebGL context (see its metricsRef contract) — a real state on a page that asks
+   for several contexts at once, and one where a pool left behind reads as a
+   smudge on an empty floor. `display` rather than opacity, because the scroll
+   timeline writes an inline opacity onto this element and inline wins. */
+.fs-contact[data-fv-off] {
+  display: none;
+}
+
+/* Ambient occlusion pass: a much tighter, darker core right where the base
+   meets the floor. A single soft blur reads as a decorative pool; the tight
+   core is what actually welds the figure to the ground. */
+.fs-contact::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44%;
+  height: 42%;
+  translate: -50% -46%;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    rgba(6, 32, 47, 0.38) 0%,
+    rgba(6, 32, 47, 0) 100%
+  );
+  filter: blur(5px);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Chapter index                                                           */
+/* ---------------------------------------------------------------------- */
+
+/* Progress through the pin, 0-1. Scrubbed on .fs-index and read by the fill
+   below, so the *same* tween drives a vertical rail on desktop and a
+   horizontal one on narrow screens — GSAP writing scaleY directly could only
+   ever be right for one of the two. */
+@property --fs-progress {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+.fs-index {
+  grid-area: 1 / 2 / 2 / 3;
+  position: relative;
+  z-index: 5;
+  justify-self: start;
+  height: min(300px, 40svh);
+}
+
+.fs-index ul {
+  position: relative;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.fs-index-track,
+.fs-index-fill {
+  position: absolute;
+  left: 5px;
+  top: 4px;
+  width: 1px;
+  height: calc(100% - 8px);
+  transform-origin: top;
+}
+
+.fs-index-track {
+  background: var(--f-line);
+}
+
+.fs-index-fill {
+  background: linear-gradient(
+    180deg,
+    var(--f-accent),
+    rgba(23, 120, 159, 0.35)
+  );
+  transform: scaleY(var(--fs-progress));
+}
+
+/* Real buttons: the index used to be three inert dots, so the second and
+   third features were reachable by scrolling and nothing else. */
+.fs-index-node {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 6px 10px 6px 0;
+  /* Keeps the 11px label's hit area at the 44px minimum without moving the
+     dot off the rail. */
+  min-height: 44px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-family: var(--label);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  font-variant-numeric: tabular-nums;
+  color: var(--f-ink-faint);
+  border-radius: 4px;
+  transition:
+    color var(--t-base) var(--ease),
+    opacity var(--t-base) var(--ease);
+}
+
+.fs-index-node i {
+  flex: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--f-sky-top);
+  border: 1px solid var(--f-line);
+  transition:
+    border-color var(--t-base) var(--ease),
+    box-shadow var(--t-base) var(--ease),
+    background-color var(--t-base) var(--ease);
+}
+
+.fs-index-node em {
+  font-style: normal;
+}
+
+/* The chapter title only appears for the beat you are on (or pointing at) —
+   an index, not a menu.
+
+   Sentence case, near-normal tracking: the label is now the feature's own
+   heading rather than a short strapline, and "Everything is customisable"
+   uppercased at 0.16em ran ~260px — wider than the space between the rail
+   and the visual. Same words, a third of the width. */
+.fs-index-name {
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 0;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--f-accent);
+  transition:
+    max-width var(--t-slow) var(--ease),
+    opacity var(--t-base) var(--ease);
+}
+
+.fs-index-node:hover,
+.fs-index-node:focus-visible {
+  color: var(--f-ink);
+}
+
+.fs-index-node:hover i,
+.fs-index-node:focus-visible i {
+  border-color: var(--f-accent);
+  box-shadow: 0 0 0 4px var(--f-accent-soft);
+}
+
+/* A px cap, not `ch`: monospaced `ch` ignores the tracking added on top of
+   it, which is how the longest label used to end up sliced mid-word. 210px
+   clears "Everything is customisable" at this size with room to spare. */
+.fs-index-node:hover .fs-index-name,
+.fs-index-node[aria-current] .fs-index-name {
+  max-width: 210px;
+  opacity: 1;
+}
+
+.fs-index-node[aria-current] {
+  color: var(--f-ink);
+}
+
+.fs-index-node[aria-current] i {
+  background: var(--f-accent);
+  border-color: var(--f-accent);
+  box-shadow: 0 0 0 4px var(--f-accent-soft);
+}
+
+/* Pressed feedback — physical, and it cannot shift the rail because only the
+   button's own content moves. */
+.fs-index-node:active {
+  translate: 0 1px;
+}
+
+.fs-index-node:focus-visible {
+  outline: 2px solid var(--f-accent);
+  outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* The spread                                                              */
+/* ---------------------------------------------------------------------- */
+
+.fs-copy {
+  /* One measure for the kicker, the lede and the spec ledger, so all three
+     share a right edge. They were previously set in `ch` on three different
+     inherited font contexts, which resolved to 390px, 447px and the full
+     column — a ragged right edge on a layout whose whole premise is grid
+     discipline. The headline is deliberately left out: a display line running
+     past the text measure is the intended contrast. */
+  --fs-measure: clamp(340px, 31vw, 470px);
+
+  grid-area: 1 / 8 / 2 / 14;
+  position: relative;
+  z-index: 4;
+  display: grid;
+  align-content: center;
+  padding-left: clamp(0px, 2vw, 40px);
+  will-change: transform;
+}
+
+/* All three beats share one cell, so the row is as tall as the tallest of
+   them — and a shorter beat used to start at the row's top edge rather than
+   sit in the middle of it. That was invisible while every beat carried a
+   four-row ledger and a two-line headline; now that each one is only as long
+   as its own source sentence, "In-depth analysis" is ~120px shorter than the
+   other two and read as floating high on the stage. Each beat centres its own
+   content inside the shared row instead. */
+.fs-beat {
+  grid-area: 1 / 1;
+  display: grid;
+  align-content: center;
+}
+
+/* ── Kicker ───────────────────────────────────────────────────────────── */
+.fs-kicker {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: var(--fs-measure);
+  margin: 0 0 clamp(18px, 2.4vh, 30px);
+  font-family: var(--label);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--f-accent);
+  will-change: transform, opacity;
+}
+
+.fs-kicker-rule {
+  flex: none;
+  width: clamp(28px, 4vw, 56px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--f-accent));
+}
+
+/* Sits directly after the rule, not pushed to the far edge. It used to be
+   right-aligned against an eyebrow that carried a strapline; with that copy
+   gone (it stated things the content file doesn't) the counter *is* the
+   eyebrow, and a lone "01 / 03" hanging 400px away from the rule reads as a
+   stray fragment. */
+.fs-kicker-count {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2em;
+}
+
+/* Current beat in the accent, the total set back — a position, not a label. */
+.fs-kicker-count span {
+  color: var(--f-ink-faint);
+}
+
+/* ── Headline ─────────────────────────────────────────────────────────
+   Didone display type: large, tightly tracked, line-height under 1. The
+   words rise out of their own line boxes (the clip below), which keeps the
+   hairline strokes crisp through the whole reveal — a blur or opacity ramp
+   turns high-contrast serif thins to mush. */
+.fs-title {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: clamp(38px, 4.6vw, 76px);
+  line-height: 0.98;
+  letter-spacing: -0.024em;
+  color: var(--f-ink);
+  text-wrap: balance;
+}
+
+.fs-word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  /* Descender headroom: the clip box has to be taller than the line box or
+     the tails of g/y are shaved off at rest. */
+  padding-bottom: 0.16em;
+  margin-bottom: -0.16em;
+}
+
+.fs-word + .fs-word {
+  margin-left: 0.22em;
+}
+
+.fs-word i {
+  display: inline-block;
+  font-style: normal;
+  will-change: transform;
+}
+
+/* ── Rule ─────────────────────────────────────────────────────────────── */
+.fs-rule {
+  display: block;
+  width: clamp(120px, 16vw, 220px);
+  height: 1px;
+  margin: clamp(22px, 3vh, 36px) 0 clamp(20px, 2.6vh, 30px);
+  transform-origin: left center;
+  background: linear-gradient(
+    90deg,
+    var(--f-accent) 0%,
+    rgba(23, 120, 159, 0.18) 70%,
+    transparent 100%
+  );
+  will-change: transform, opacity;
+}
+
+/* ── Lede ─────────────────────────────────────────────────────────────
+   Set a step larger and more open than before. It is now the only prose in
+   the beat — the invented spec values that used to share the block are gone —
+   so it can afford the room, and at this size the source's own sentence is
+   the thing the eye lands on after the headline instead of a caption under
+   it. */
+.fs-lede {
+  max-width: var(--fs-measure);
+  margin: 0;
+  font-family: var(--sans);
+  font-size: clamp(15.5px, 1.22vw, 19px);
+  font-weight: 400;
+  line-height: 1.7;
+  color: var(--f-ink-soft);
+  text-wrap: pretty;
+  will-change: transform, opacity;
+}
+
+/* The one phrase in the sentence carried at full ink, with a soft accent
+   underline drawn *under* the baseline rather than through the descenders.
+   The lede is the only place the source's actual words are set at length, so
+   it gets exactly one emphasis — any more and the paragraph turns into a
+   ransom note and the eye stops trusting the marking. */
+.fs-mark {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--f-ink);
+  /* Painted as a background layer so it can sit lower and thinner than any
+     text-decoration would, and so it never breaks the line's rhythm. */
+  background-image: linear-gradient(
+    90deg,
+    rgba(23, 120, 159, 0.42),
+    rgba(23, 120, 159, 0.42)
+  );
+  background-size: 100% 1px;
+  background-position: 0 calc(100% - 1px);
+  background-repeat: no-repeat;
+}
+
+/* ── Key terms ────────────────────────────────────────────────────────
+   This replaces a label / leader / value ledger. The ledger was the right
+   pattern for the wrong content: the content file quotes no figures for
+   these three features, so its value column had been filled with invented
+   ones. What the source does give is the terms themselves, so they are set
+   as a two-column ruled list instead — same hairline discipline, no second
+   column of claims to have to make up, and it reads at a glance, which is
+   the job a paragraph can't do.
+
+   Two columns rather than a full-width stack: the source's first feature
+   names six things, and six full-width rows would push the block past the
+   pinned stage on a laptop-height window. */
+.fs-points {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: clamp(16px, 2vw, 32px);
+  max-width: var(--fs-measure);
+  margin: clamp(24px, 3.6vh, 42px) 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--f-line-soft);
+}
+
+.fs-point {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 10px 0 9px;
+  border-bottom: 1px solid var(--f-line-soft);
+  font-family: var(--label);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--f-ink);
+  will-change: transform, opacity;
+  /* Only colour transitions; the row's position is owned by the scroll
+     timeline, so animating anything geometric here would fight it. */
+  transition:
+    border-color var(--t-base) var(--ease),
+    color var(--t-base) var(--ease);
+}
+
+/* Square, not a bullet — the same Swiss register as the hairlines. */
+.fs-point::before {
+  content: "";
+  flex: none;
+  width: 5px;
+  height: 5px;
+  translate: 0 -1px;
+  background: var(--f-accent);
+  opacity: 0.72;
+}
+
+/* The source's trailing "etc...": present, but visibly not one of the named
+   things. Set apart by case and marker rather than by dropping to
+   --f-ink-faint (which is a 2.8:1 tone — fine for the numerals it is used on
+   elsewhere, not for 10.5px running text). */
+.fs-point[data-soft] {
+  color: var(--f-ink-soft);
+  letter-spacing: 0.06em;
+  text-transform: none;
+}
+
+.fs-point[data-soft]::before {
+  background: var(--f-ink-soft);
+  opacity: 0.4;
+}
+
+/* Micro-interaction on a list you can't click: reading a row lights it up.
+   Nothing moves — enough to feel responsive, not enough to suggest it is a
+   control. */
+@media (hover: hover) {
+  .fs-point:hover {
+    border-bottom-color: var(--f-accent-soft);
+    color: var(--f-accent);
+  }
+
+  .fs-point:hover::before {
+    opacity: 1;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Responsive                                                              */
+/* ---------------------------------------------------------------------- */
+
+/* Tablet: pull the copy wider and let the visual fall further back. */
+@media (max-width: 1180px) {
+  .feature-story .fs-visual {
+    grid-column: 2 / 8;
+  }
+
+  .fs-copy {
+    grid-column: 7 / 14;
+  }
+
+  .fs-title {
+    font-size: clamp(34px, 5vw, 58px);
+  }
+
+  .fs-index-name {
+    display: none;
+  }
+}
+
+/* Portrait / narrow: the grid collapses to one column and the spread stacks
+   *below* the visual rather than on top of it.
+
+   The previous version kept the desktop overlap — a 58svh figure behind the
+   headline with a radial "legibility wash" painted over it. Two things went
+   wrong with that: high-contrast Didone hairlines over a rendered 3D scene are
+   genuinely hard to read at 16px-equivalent sizes, and the wash sat *over* the
+   canvas, greying its base out to a flat slab. Stacking keeps the type on clean
+   paper and the scene fully rendered. */
+@media (max-width: 900px) {
+  .feature-story .fs-stage {
+    --fs-visual-h: clamp(200px, 32svh, 300px);
+    /* Vertical room the chapter bar needs at the bottom of the stage. The
+       copy reserves it, so a long lede can't run underneath the controls. */
+    --fs-index-band: clamp(52px, 8svh, 74px);
+
+    grid-template-columns: minmax(20px, 1fr) minmax(0, 620px) minmax(20px, 1fr);
+  }
+
+  /* Behind the visual in the upper band here — there is no lower-left quarter
+     to fill in a single-column layout, and a bottom-anchored numeral would
+     land under the spec ledger.
+
+     Anchored to the left edge and bled off it rather than centred, which is the
+     desktop treatment brought down. Centred was the maximum-overlap
+     arrangement there is: the numeral's densest strokes sat directly behind the
+     scene's densest geometry, in the same band, at nearly the same size. */
+  .fs-numeral-stack {
+    grid-area: 1 / 1 / 2 / -1;
+    place-items: start start;
+    padding-top: 1.4svh;
+  }
+
+  /* A tonal mass rather than an outline. This is the change that actually
+     separates the numerals from the 3D.
+
+     On desktop they are a 1.25px accent stroke, and that works there because
+     they stand 400px tall behind a 900px stage — two obviously different
+     scales — in front of a scene whose own hairlines render about two pixels
+     wide. Neither condition holds here. The numeral and the canvas share a
+     single ~270px band, and an accent outline at hairline weight is the *same
+     drawing* as the scene's own line work: the board's frame, the engine's
+     wireframe cage, the search tree's edges. They read as one tangled graphic.
+
+     A flat low-alpha fill contains no lines at all, so it cannot be mistaken
+     for part of the scene however much the two overlap. Dropping the figure a
+     size register does the rest, restoring the scale relationship desktop has
+     (a numeral ~0.44 of the frame it sits in, where this was 0.89 — bigger,
+     relative to its frame, than the object it was supposed to sit behind).
+
+     background-clip is reset along with the stroke: the base rule paints these
+     with a clipped gradient through `color: transparent`, and leaving that in
+     place while setting a real colour is asking two mechanisms to agree. */
+  .fs-numeral {
+    margin: 0 0 0 -0.17em;
+    font-size: clamp(124px, 32vw, 186px);
+    line-height: 0.9;
+    -webkit-text-stroke-width: 0;
+    color: rgba(23, 120, 159, 0.1);
+    background: none;
+    -webkit-background-clip: border-box;
+    background-clip: border-box;
+  }
+
+  /* The receding floor exists to give the scene something to stand on. In
+     this layout the visual is at the top of the stage and the floor is at the
+     bottom, behind the spec ledger, where it stops being perspective and
+     starts being noise across the type. */
+  .fs-floor {
+    display: none;
+  }
+
+  .feature-story .fs-visual {
+    grid-area: 1 / 1 / 2 / -1;
+    align-self: start;
+    margin-inline: 0;
+  }
+
+  /* Light well, sitting *between* the numeral and the canvas.
+
+     .fs-visual is a stacking context (position: relative, z-index 2), so a
+     negative-z child of it paints above everything in .fs-numeral-stack
+     (z-index 1) and still below the canvas, which is an in-flow,
+     non-positioned block. That is the one place in the stack this can go.
+
+     A soft pool of the sky's own light, not a panel: this chapter is
+     deliberately not a card layout and any edge here would read as one. What it
+     buys is depth. The numeral is dimmed to a whisper directly behind the
+     scene's mass and holds its full value outside it, so the two sit at visibly
+     different distances rather than on one plane. Together with the fill above
+     and the scene being ~23% larger in this slot (see the fit note in
+     FeatureVisual), that is three independent cues — technique, position and
+     depth — where before there were none. */
+  .feature-story .fs-visual::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    left: 50%;
+    top: 50%;
+    width: 128%;
+    height: 152%;
+    translate: -50% -50%;
+    pointer-events: none;
+    background: radial-gradient(
+      closest-side,
+      rgba(255, 255, 255, 0.74) 0%,
+      rgba(255, 255, 255, 0.52) 44%,
+      rgba(248, 251, 253, 0.18) 72%,
+      rgba(248, 251, 253, 0) 100%
+    );
+  }
+
+  /* Anchored to the canvas' centre (half its height) plus the base offset the
+     renderer publishes, so it stays welded to the scene even though the canvas
+     is no longer full-height here. */
+  .fs-contact {
+    grid-area: 1 / 1 / 2 / -1;
+    align-self: start;
+    translate: 0 calc(var(--fs-visual-h) / 2 + var(--fv-base, 30%));
+    width: calc(min(46vmin, 300px) * var(--fv-spread, 1));
+    height: calc(min(8vmin, 52px) * var(--fv-spread, 1));
+  }
+
+  /* Fills the stage and reserves the two bands it must not intrude on: the
+     visual above and the chapter bar below. The beats then centre in what is
+     left, which keeps the block optically placed whichever beat is showing.
+
+     `align-self: stretch` matters — .fs-stage centres its grid items, so
+     without it this box is only as tall as its content and the top padding
+     would be measured from a floating centre rather than from the stage's
+     top edge, leaving a ~300px hole under the visual.
+
+     The reserve is 0.88 of the canvas because each scene is centred in it and
+     only fills the middle ~70%: the last tenth is always empty pixels, so the
+     copy is free to start inside it. */
+  .fs-copy {
+    grid-area: 1 / 2 / 2 / 3;
+    align-self: stretch;
+    align-content: center;
+    padding: calc(var(--fs-visual-h) * 0.88) 0 var(--fs-index-band);
+  }
+
+  .fs-title {
+    font-size: clamp(32px, 7.4vw, 46px);
+  }
+
+  .fs-rule {
+    margin: clamp(16px, 2.2svh, 24px) 0 clamp(14px, 2svh, 20px);
+  }
+
+  .fs-lede {
+    font-size: 15.5px;
+    line-height: 1.62;
+  }
+
+  .fs-points {
+    margin-top: clamp(18px, 2.8svh, 30px);
+  }
+
+  .fs-point {
+    padding: 9px 0 8px;
+  }
+
+  .fs-index {
+    grid-area: 1 / 1 / 2 / -1;
+    justify-self: center;
+    align-self: end;
+    height: auto;
+    margin-bottom: clamp(18px, 3svh, 30px);
+  }
+
+  .fs-index ul {
+    flex-direction: row;
+    gap: 4px;
+    height: auto;
+  }
+
+  .fs-index-track,
+  .fs-index-fill {
+    left: 4px;
+    top: auto;
+    bottom: 6px;
+    width: calc(100% - 8px);
+    height: 1px;
+    transform-origin: left center;
+  }
+
+  .fs-index-fill {
+    transform: scaleX(var(--fs-progress));
+  }
+
+  .fs-index-node {
+    flex-direction: column;
+    gap: 7px;
+    padding: 6px 10px;
+  }
+
+  .fs-copy {
+    --fs-measure: 100%;
+  }
+}
+
+/* Short viewports — a landscape-ish phone or a small handset. The pinned
+   stage is exactly one viewport tall, so everything has to fit inside it: the
+   type steps down a notch, the ledger tightens, and the chapter bar drops its
+   numerals (redundant with the kicker's own "01 / 03" counter) to buy back
+   its band. */
+@media (max-width: 900px) and (max-height: 780px) {
+  .feature-story .fs-stage {
+    --fs-visual-h: clamp(150px, 26svh, 220px);
+    --fs-index-band: clamp(40px, 6svh, 52px);
+  }
+
+  .fs-kicker {
+    margin-bottom: 14px;
+  }
+
+  .fs-title {
+    font-size: clamp(26px, 6.6vw, 34px);
+  }
+
+  .fs-rule {
+    width: clamp(88px, 22vw, 140px);
+    margin: 14px 0 12px;
+  }
+
+  .fs-lede {
+    font-size: 14.5px;
+    line-height: 1.56;
+  }
+
+  .fs-points {
+    margin-top: 16px;
+  }
+
+  .fs-point {
+    padding: 7px 0 6px;
+    gap: 7px;
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+  }
+
+  .fs-index-node em {
+    display: none;
+  }
+
+  /* With the numerals gone the bar is only as tall as the dots, so a rail
+     pinned near the bottom edge floats ~28px below them. Running it through
+     their centres instead reads as stations on a line — the dots are opaque,
+     so they mask it where it passes behind. */
+  .fs-index-track,
+  .fs-index-fill {
+    top: calc(50% - 1px);
+    bottom: auto;
+  }
+
+  /* Steps down with the canvas band above it, so the numeral keeps the same
+     proportion to the scene it sits behind rather than growing relative to it
+     on the shortest viewports. */
+  .fs-numeral {
+    font-size: clamp(104px, 27vw, 152px);
+  }
+}
+
+@media (max-width: 520px) {
+  .fs-title {
+    font-size: clamp(30px, 8.6vw, 42px);
+  }
+
+  /* Stays two columns. The first feature names six terms, and six
+     full-width rows are ~110px taller than the stage has left once the
+     visual and the chapter bar have taken their bands — the last row ran
+     under the bar. Tracking comes off instead so the longest term
+     ("Practice every position") still clears a half column. */
+  .fs-point {
+    padding: 7px 0 6px;
+    font-size: 9.5px;
+    letter-spacing: 0.06em;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Reduced motion — laid out in flow, no pin                               */
+/* ---------------------------------------------------------------------- */
+
+.feature-story.is-static .fs-stage {
+  height: auto;
+  min-height: 0;
+  display: block;
+  padding: 12svh 0 14svh;
+}
+
+.feature-story.is-static .fs-atmosphere,
+.feature-story.is-static .fs-numeral-stack,
+.feature-story.is-static .fs-contact {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+}
+
+.feature-story.is-static .fs-numeral-stack {
+  align-items: start;
+  padding-top: 6svh;
+}
+
+.feature-story.is-static .fs-visual {
+  position: sticky;
+  top: 8svh;
+  width: min(400px, 64vw);
+  height: 40svh;
+  margin: 0 auto 4svh;
+}
+
+.feature-story.is-static .fs-index {
+  display: none;
+}
+
+/* The visual is `position: sticky` in this layout, so a shadow placed from
+   the renderer's canvas-relative metrics can't follow it. Drop it rather than
+   leave a detached smudge on the page. */
+.feature-story.is-static .fs-contact {
+  display: none;
+}
+
+.feature-story.is-static .fs-copy {
+  /* The desktop measure is sized for a column that shares the stage with the
+     visual. Here the copy has the page to itself and is centred, so a 446px
+     measure inside a 640px box just reads as text nudged off-centre. */
+  --fs-measure: 100%;
+  position: static;
+  width: min(640px, 90vw);
+  margin: 0 auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(56px, 9svh, 96px);
+}
+
+.feature-story.is-static .fs-beat {
+  grid-area: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fs-glow-a,
+  .fs-glow-b {
+    animation: none;
+  }
+}
