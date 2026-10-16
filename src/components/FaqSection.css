@@ -16,19 +16,19 @@
   /* Local palette, same reasoning as pricing's: the hero's HUD is tuned
      against the global tokens, so overriding those here would reach back up
      the page. */
-  --q-ink: #eef7fb;
-  --q-ink-soft: #a6bdc9;
-  --q-ink-dim: rgba(166, 189, 201, 0.62);
-  --q-copy: #c4d5de;
-  --q-line: rgba(155, 216, 237, 0.16);
-  --q-line-soft: rgba(155, 216, 237, 0.09);
-  --q-accent: #9bd8ed;
+  --q-ink: var(--ink-on-dark);
+  --q-ink-soft: var(--accent-1);
+  --q-ink-dim: rgba(var(--accent-1-rgb), 0.62);
+  --q-copy: var(--ink-on-dark);
+  --q-line: rgba(var(--accent-1-rgb), 0.16);
+  --q-line-soft: rgba(var(--accent-1-rgb), 0.09);
+  --q-accent: var(--accent-1);
   --q-gutter: clamp(24px, 6vw, 96px);
 
   position: relative;
   isolation: isolate;
   /* Picks up .pricing-tail's flat tone, so there is no join to see. */
-  background: #000106;
+  background: var(--bg-dark);
   /* Straddles that join: both sections' heights land on fractional device
      pixels and the sub-pixel gap renders as a hairline otherwise. */
   margin-top: -1px;
@@ -59,9 +59,9 @@
   opacity: 0.5;
   background: radial-gradient(
     50% 50% at 50% 50%,
-    rgba(112, 182, 212, 0.14) 0%,
-    rgba(58, 116, 150, 0.07) 42%,
-    rgba(16, 38, 54, 0.03) 70%,
+    rgba(var(--accent-1-rgb), 0.14) 0%,
+    rgba(var(--accent-1-rgb), 0.07) 42%,
+    rgba(var(--bg-dark-2-rgb), 0.03) 70%,
     transparent 100%
   );
 }
@@ -156,7 +156,7 @@
   padding: 14px 20px 14px 16px;
   border: 1px solid var(--q-line);
   border-radius: 12px;
-  background: rgba(155, 216, 237, 0.04);
+  background: rgba(var(--accent-1-rgb), 0.04);
   text-decoration: none;
   color: var(--q-ink);
   transition:
@@ -166,8 +166,8 @@
 }
 
 .faq-ask:hover {
-  border-color: rgba(155, 216, 237, 0.38);
-  background: rgba(155, 216, 237, 0.08);
+  border-color: rgba(var(--accent-1-rgb), 0.38);
+  background: rgba(var(--accent-1-rgb), 0.08);
   transform: translateY(-2px);
 }
 
@@ -178,7 +178,7 @@
   height: 38px;
   flex: none;
   border-radius: 9px;
-  background: rgba(155, 216, 237, 0.1);
+  background: rgba(var(--accent-1-rgb), 0.1);
   color: var(--q-accent);
 }
 
@@ -278,7 +278,7 @@
 }
 
 .faq-trigger:hover {
-  background: rgba(155, 216, 237, 0.045);
+  background: rgba(var(--accent-1-rgb), 0.045);
 }
 
 /* Keyboard focus gets a real ring, and only keyboard focus — a mouse user who
@@ -350,13 +350,13 @@
 }
 
 .faq-trigger:hover .faq-mark {
-  border-color: rgba(155, 216, 237, 0.4);
+  border-color: rgba(var(--accent-1-rgb), 0.4);
 }
 
 .faq-item.is-open .faq-mark {
   rotate: 180deg;
-  border-color: rgba(155, 216, 237, 0.45);
-  background: rgba(155, 216, 237, 0.1);
+  border-color: rgba(var(--accent-1-rgb), 0.45);
+  background: rgba(var(--accent-1-rgb), 0.1);
 }
 
 .faq-item.is-open .faq-mark i {
@@ -458,8 +458,8 @@
 }
 
 .faq-answer-links a:hover {
-  border-color: rgba(155, 216, 237, 0.42);
-  background: rgba(155, 216, 237, 0.08);
+  border-color: rgba(var(--accent-1-rgb), 0.42);
+  background: rgba(var(--accent-1-rgb), 0.08);
   color: var(--q-accent);
 }
 

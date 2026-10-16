@@ -57,15 +57,15 @@
   /* Local palette, same reasoning as the Why chapter's: the hero's HUD is
      tuned against the global tokens, so overriding them here would reach back
      up the page. */
-  --p-ink: #eef7fb;
-  --p-ink-soft: #a6bdc9;
-  --p-ink-dim: rgba(166, 189, 201, 0.6);
+  --p-ink: var(--ink-on-dark);
+  --p-ink-soft: var(--accent-1);
+  --p-ink-dim: rgba(var(--accent-1-rgb), 0.6);
   /* Body copy inside a card sits brighter than copy on the open stage. The
      card's own surface is a lighter value than the stage, so the stage's ink
      loses contrast against it — and the feature lists are the one thing on this
      page a reader has to compare line by line. */
-  --p-copy: #c4d5de;
-  --p-accent: #9bd8ed;
+  --p-copy: var(--ink-on-dark);
+  --p-accent: var(--accent-1);
   --p-gutter: clamp(24px, 6vw, 96px);
 
   /* ── The space palette ────────────────────────────────────────────────
@@ -207,9 +207,9 @@
   pointer-events: none;
   background: radial-gradient(
     124% 92% at 50% 38%,
-    rgba(38, 52, 132, 0.85) 0%,
-    rgba(22, 34, 92, 0.5) 28%,
-    rgba(10, 18, 54, 0.2) 56%,
+    rgba(var(--bg-dark-2-rgb), 0.85) 0%,
+    rgba(var(--bg-dark-2-rgb), 0.5) 28%,
+    rgba(var(--bg-dark-2-rgb), 0.2) 56%,
     transparent 80%
   );
   -webkit-mask-image: linear-gradient(
@@ -260,7 +260,7 @@
       82% 58% at 50% calc(98% - var(--p-dusk) * 32%),
       rgb(var(--p-neb-violet) / 0.5) 0%,
       rgb(var(--p-neb-violet) / 0.24) 30%,
-      rgba(12, 20, 58, 0.12) 58%,
+      rgba(var(--bg-dark-2-rgb), 0.12) 58%,
       transparent 82%
     ),
     radial-gradient(
@@ -338,9 +338,9 @@
   opacity: 0.16;
   background: radial-gradient(
     52% 50% at 50% 50%,
-    rgba(126, 196, 224, 0.22) 0%,
-    rgba(78, 140, 176, 0.11) 38%,
-    rgba(20, 44, 62, 0.05) 66%,
+    rgba(var(--accent-1-rgb), 0.22) 0%,
+    rgba(var(--accent-1-rgb), 0.11) 38%,
+    rgba(var(--bg-dark-2-rgb), 0.05) 66%,
     transparent 100%
   );
   filter: blur(6px);
@@ -373,16 +373,16 @@
   background-image:
     repeating-linear-gradient(
       90deg,
-      rgba(155, 216, 237, 0.14) 0 1px,
+      rgba(var(--accent-1-rgb), 0.14) 0 1px,
       transparent 1px
     ),
-    linear-gradient(180deg, rgba(155, 216, 237, 0.14) 1px, transparent 1px);
+    linear-gradient(180deg, rgba(var(--accent-1-rgb), 0.14) 1px, transparent 1px);
   /* 12.5% = one file of eight. The horizontal rhythm is the board's. */
   background-size: 12.5% 82px;
   mask-image: linear-gradient(
     180deg,
     transparent 0%,
-    rgba(0, 0, 0, 0.5) 34%,
+    rgba(var(--bg-dark-rgb), 0.5) 34%,
     #000 100%
   );
 }
@@ -399,9 +399,9 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(155, 216, 237, 0.07) 22%,
-    rgba(155, 216, 237, 0.12) 50%,
-    rgba(155, 216, 237, 0.07) 78%,
+    rgba(var(--accent-1-rgb), 0.07) 22%,
+    rgba(var(--accent-1-rgb), 0.12) 50%,
+    rgba(var(--accent-1-rgb), 0.07) 78%,
     transparent
   );
 }
@@ -419,7 +419,7 @@
   inset: 0;
   opacity: 0.5;
   background-image: radial-gradient(
-    rgba(120, 160, 180, 0.06) 1px,
+    rgba(var(--accent-1-rgb), 0.06) 1px,
     transparent 1px
   );
   background-size: 3px 3px;
@@ -443,8 +443,8 @@
   background: radial-gradient(
     92% 78% at 50% 44%,
     transparent 46%,
-    rgba(0, 1, 6, 0.42) 78%,
-    rgba(0, 1, 6, 0.7) 100%
+    rgba(var(--bg-dark-rgb), 0.42) 78%,
+    rgba(var(--bg-dark-rgb), 0.7) 100%
   );
   -webkit-mask-image: linear-gradient(
     180deg,
@@ -504,11 +504,11 @@
   line-height: 0.92;
   letter-spacing: -0.03em;
   text-transform: uppercase;
-  background: linear-gradient(176deg, #f6f8ff 6%, #d3ddff 50%, #8f9bd8 100%);
+  background: linear-gradient(176deg, var(--ink-on-dark) 6%, var(--ink-on-dark) 50%, var(--accent-1) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 2px 16px rgba(0, 1, 6, 0.8));
+  filter: drop-shadow(0 2px 16px rgba(var(--bg-dark-rgb), 0.8));
 }
 
 /* Symmetric, because the column is centred — a rule that runs off to one side of
@@ -574,9 +574,9 @@
   overflow: hidden;
   background: linear-gradient(
     180deg,
-    rgba(155, 216, 237, 0.06),
-    rgba(155, 216, 237, 0.34) 52%,
-    rgba(155, 216, 237, 0.06)
+    rgba(var(--accent-1-rgb), 0.06),
+    rgba(var(--accent-1-rgb), 0.34) 52%,
+    rgba(var(--accent-1-rgb), 0.06)
   );
 }
 
@@ -592,7 +592,7 @@
   height: 14px;
   border-radius: 2px;
   background: linear-gradient(180deg, transparent, var(--p-accent));
-  box-shadow: 0 0 9px rgba(155, 216, 237, 0.55);
+  box-shadow: 0 0 9px rgba(var(--accent-1-rgb), 0.55);
   animation: pricing-cue-fall 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
@@ -767,15 +767,15 @@
       ),
     /* Base stock, a step bluer than flat slate: the card is a lit object in a
        blue-violet field and a neutral surface in one reads as grey paper. Lifted
-       from the old #070e1a so the feature lists clear 4.5:1 comfortably. */
-      linear-gradient(170deg, #101c2c 0%, #0a1322 58%, #060d19 100%);
+       from the old var(--bg-dark) so the feature lists clear 4.5:1 comfortably. */
+      linear-gradient(170deg, var(--bg-dark) 0%, var(--bg-dark) 58%, var(--bg-dark) 100%);
   box-shadow:
-    /* contact */ 0 2px 5px rgba(0, 2, 8, 0.6),
-    /* drop */ 0 14px 30px rgba(0, 2, 8, 0.55),
-    /* ambient */ 0 44px 80px rgba(0, 2, 8, 0.5),
+    /* contact */ 0 2px 5px rgba(var(--bg-dark-rgb), 0.6),
+    /* drop */ 0 14px 30px rgba(var(--bg-dark-rgb), 0.55),
+    /* ambient */ 0 44px 80px rgba(var(--bg-dark-rgb), 0.5),
     /* field halo */ 0 0 58px rgb(var(--p-neb-violet) / 0.16),
     /* the inset cut edge, under the rim above */
-      inset 0 0 0 1px rgba(0, 5, 12, 0.5);
+      inset 0 0 0 1px rgba(var(--bg-dark-rgb), 0.5);
   /* 240ms, inside the 150-300ms band the rest of the page's micro-interactions
      are tuned at, and decelerating — the page's one motion personality. */
   transition:
@@ -820,11 +820,11 @@
   position: absolute;
   inset: 0;
   background-image: radial-gradient(
-      rgba(150, 190, 210, 0.05) 1px,
+      rgba(var(--accent-1-rgb), 0.05) 1px,
       transparent 1px
     ),
-    radial-gradient(rgba(228, 238, 255, 0.45) 0.8px, transparent 1.4px),
-    radial-gradient(rgba(178, 196, 255, 0.28) 0.7px, transparent 1.2px);
+    radial-gradient(rgba(var(--ink-on-dark-rgb), 0.45) 0.8px, transparent 1.4px),
+    radial-gradient(rgba(var(--accent-1-rgb), 0.28) 0.7px, transparent 1.2px);
   background-size: 3px 3px, 53px 61px, 83px 71px;
   background-position: 0 0, 13px 21px, 44px 7px;
   opacity: 0.5;
@@ -847,12 +847,12 @@
   transform: translateY(-6px);
   border-color: rgb(var(--tier-rgb) / 0.52);
   box-shadow:
-    0 3px 7px rgba(0, 2, 8, 0.62),
-    0 20px 40px rgba(0, 2, 8, 0.6),
-    0 56px 100px rgba(0, 2, 8, 0.55),
+    0 3px 7px rgba(var(--bg-dark-rgb), 0.62),
+    0 20px 40px rgba(var(--bg-dark-rgb), 0.6),
+    0 56px 100px rgba(var(--bg-dark-rgb), 0.55),
     0 0 30px rgb(var(--tier-rgb) / 0.16),
     0 0 78px rgb(var(--p-neb-violet) / 0.2),
-    inset 0 0 0 1px rgba(0, 5, 12, 0.5);
+    inset 0 0 0 1px rgba(var(--bg-dark-rgb), 0.5);
 }
 
 .pricing-card:hover,
@@ -887,14 +887,14 @@
       rgb(var(--p-neb-violet) / 0.16) 0%,
       transparent 74%
     ),
-    linear-gradient(170deg, #12212f 0%, #0b1524 58%, #060d19 100%);
+    linear-gradient(170deg, var(--bg-dark-2) 0%, var(--bg-dark) 58%, var(--bg-dark) 100%);
   box-shadow:
-    0 2px 5px rgba(0, 2, 8, 0.6),
-    0 16px 34px rgba(0, 2, 8, 0.58),
-    0 48px 88px rgba(0, 2, 8, 0.52),
+    0 2px 5px rgba(var(--bg-dark-rgb), 0.6),
+    0 16px 34px rgba(var(--bg-dark-rgb), 0.58),
+    0 48px 88px rgba(var(--bg-dark-rgb), 0.52),
     0 0 32px rgb(var(--tier-rgb) / 0.18),
     0 0 72px rgb(var(--p-neb-violet) / 0.2),
-    inset 0 0 0 1px rgba(0, 5, 12, 0.5);
+    inset 0 0 0 1px rgba(var(--bg-dark-rgb), 0.5);
 }
 
 .pricing-card.is-featured .pricing-panel::before {
@@ -1056,7 +1056,7 @@
   );
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    0 2px 6px rgba(0, 2, 8, 0.4);
+    0 2px 6px rgba(var(--bg-dark-rgb), 0.4);
   /* System symbol fonts carry the chess glyphs; the display and label stacks do
      not, and a missing glyph here is the whole mark. */
   font-family: "Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols 2",
@@ -1064,7 +1064,7 @@
   font-size: 21px;
   line-height: 1;
   color: var(--tier);
-  filter: drop-shadow(0 1px 0 rgba(0, 4, 12, 0.8));
+  filter: drop-shadow(0 1px 0 rgba(var(--bg-dark-rgb), 0.8));
 }
 
 .pricing-tier {
@@ -1123,7 +1123,7 @@
   );
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.26),
-    0 5px 14px rgba(0, 2, 8, 0.55),
+    0 5px 14px rgba(var(--bg-dark-rgb), 0.55),
     0 0 20px rgb(var(--tier-rgb) / 0.2);
   font-family: var(--label);
   font-size: 9px;
@@ -1170,20 +1170,20 @@
      Falls from white through the chapter's ink to a cool grey, which is a Didone's
      own contrast read as a reflection.
    *
-   * Stops at #b8cbd6 rather than the old #8ea3b1 — the gradient's darkest stop is
+   * Stops at var(--accent-1) rather than the old var(--accent-1) — the gradient's darkest stop is
    * what the bottom third of every digit is actually set in, and that one sat at
    * about 6:1 where this sits at 9:1. */
   background: linear-gradient(
     177deg,
     #ffffff 0%,
-    #eaf4f9 40%,
-    #cfdee7 74%,
-    #b8cbd6 100%
+    var(--ink-on-dark) 40%,
+    var(--ink-on-dark) 74%,
+    var(--accent-1) 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 1px 1px rgba(0, 3, 10, 0.6));
+  filter: drop-shadow(0 1px 1px rgba(var(--bg-dark-rgb), 0.6));
 }
 
 .pricing-price i {
@@ -1330,7 +1330,7 @@
   );
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 4px 12px rgba(0, 2, 8, 0.4);
+    0 4px 12px rgba(var(--bg-dark-rgb), 0.4);
   font-family: var(--label);
   font-size: 11px;
   font-weight: 600;
@@ -1385,12 +1385,12 @@
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.4),
     0 8px 22px rgb(var(--tier-rgb) / 0.22);
-  color: #04121a;
+  color: var(--bg-dark);
 }
 
 /* Both states fill, so an outlined button and a filled one converge on the same
    answer under the pointer: the tier's own colour, with near-black type on it.
-   #04121a on every one of the four tier inks clears 9:1. */
+   var(--bg-dark) on every one of the four tier inks clears 9:1. */
 .pricing-cta:hover,
 .pricing-cta:focus-visible {
   border-color: transparent;
@@ -1398,7 +1398,7 @@
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.45),
     0 10px 26px rgb(var(--tier-rgb) / 0.32);
-  color: #04121a;
+  color: var(--bg-dark);
 }
 
 .pricing-cta svg {
@@ -1415,7 +1415,7 @@
 
 /* A real outline rather than a stack of box-shadows. The button's shadow set
    carries its fill and its lift, so spending it on a focus ring — which is what
-   the old `box-shadow: 0 0 0 2px #000106, 0 0 0 3px var(--tier)` did — meant a
+   the old `box-shadow: 0 0 0 2px var(--bg-dark), 0 0 0 3px var(--tier)` did — meant a
    focused button lost both and read as flatter than an unfocused one. An outline
    is a separate channel, so focus is additive, and it follows the 9px radius. */
 .pricing-cta:focus-visible {
@@ -1464,9 +1464,9 @@
   background: linear-gradient(
     180deg,
     var(--space-base) 0%,
-    #030713 42%,
-    #01040c 76%,
-    #000106 100%
+    var(--bg-dark) 42%,
+    var(--bg-dark) 76%,
+    var(--bg-dark) 100%
   );
 }
 
@@ -1556,7 +1556,7 @@
   /* The one step that still exists at the top of the frame. Under reduced motion
      the Why chapter above has no dive and therefore no sky — it ends on the page's
      near-black — while this chapter is painted in the sky's base tone regardless.
-     A ramp back to #000106 over the backdrop's first rows removes it.
+     A ramp back to var(--bg-dark) over the backdrop's first rows removes it.
    *
    * Deliberately inside this media query: at every other width and preference the
    * Why chapter *does* hand over a sky, and there a black ramp would be drawing
@@ -1570,9 +1570,9 @@
     pointer-events: none;
     background: linear-gradient(
       180deg,
-      #000106 0%,
-      rgba(0, 1, 6, 0.72) 44%,
-      rgba(0, 1, 6, 0) 100%
+      var(--bg-dark) 0%,
+      rgba(var(--bg-dark-rgb), 0.72) 44%,
+      rgba(var(--bg-dark-rgb), 0) 100%
     );
   }
 }

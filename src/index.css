@@ -1,193 +1,16 @@
+@import "./theme/fonts.css";
+@import "./theme/tokens.css";
+@import "./theme/typeScale.css";
+
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
+  font: var(--fs-body) / 1.5 var(--font-body);
+  color: var(--ink-on-dark);
+  background: var(--bg-dark);
+  color-scheme: dark;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
-#root {
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-/* Boxed layout used by the internal component gallery page only —
-   the hero/landing page renders full-bleed and skips this constraint. */
-.boxed-page {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
-}
-
-
-/* Chessee brand foundation */
-:root {
-  --text: #a9bac4;
-  --text-h: #f4f8fb;
-  /* Same deep tone as the hero artwork's own base, the hero tail and
-     .features-stage. The page background shows through while the fog
-     transition fades the hero out, so keeping all of them on one value is
-     what stops a faint horizontal edge appearing mid-transition. */
-  --bg: #000106;
-  --border: rgba(176, 211, 225, 0.16);
-  --accent: #9bd8ed;
-  --sans: "Segoe UI Variable", "Segoe UI", Helvetica, Arial, sans-serif;
-  --heading: "Segoe UI Variable Display", "Segoe UI", Helvetica, Arial, sans-serif;
-  --mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
-  /* Editorial pair used by the light chapter (features reveal + feature
-     story). Deliberately separate tokens rather than a redefinition of
-     --heading/--mono: the dark hero's HUD panel widths are tuned to the
-     metrics of the stacks above, so swapping those globally would resize
-     every readout. */
-  --display: "Bodoni Moda", "Bodoni MT", Didot, "Times New Roman", serif;
-  --label: "JetBrains Mono", "Cascadia Code", "SFMono-Regular", Consolas,
-    monospace;
-  /* The reading face — long-form copy that has to be *read* rather than looked
-     at, and specifically copy read reversed out of artwork (the Why chapter's
-     four beats, set over a lit board).
-   *
-   * A third editorial token rather than a wider brief for --display, because a
-   * Didone is the wrong tool for the job and the page has the receipts: setting
-   * the closing thesis in Bodoni was tried and reverted, because at reading sizes
-   * its hairlines all but vanish against a near-black frame and its tight
-   * apertures slow the reader down by design. --display stays where it earns its
-   * keep, on numerals and titles that are looked at rather than read.
-   *
-   * Spectral instead: a screen-first serif with moderate stroke contrast, so it
-   * keeps a Didone's editorial voice — which is what makes the chapter read as
-   * something published rather than something shipped — while holding its weight
-   * reversed at 19-24px, which is the only thing that actually matters here.
-   * Reversed type optically thins, so this is always set at 500 or above.
-   *
-   * The fallbacks are the same shape rather than the nearest serif to hand: Iowan
-   * Old Style and Palatino are both sturdy, generous-x-height text faces, so a
-   * frame rendered before the webfont lands is set in the same voice at close to
-   * the same measure — which matters more here than usual, because the stage's
-   * height and the beats' line counts are measured against whatever is resolved
-   * at the time (see the document.fonts.ready refresh in WhySection.tsx). */
-  --prose: "Spectral", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia,
-    serif;
-  color-scheme: dark;
-  background: var(--bg);
-}
-
-html {
-  /* No `scroll-behavior: smooth` here. ScrollSmoother (see HomePage) owns the
-     page's scrolling, and the native easing would animate the same scroll
-     position against the smoother's own tween — two eases fighting over one
-     number, which shows up as a jump at the end of every anchor jump. The
-     reduced-motion fallback below documents the one case that used it. */
-  background: var(--bg);
-  /* Reserve the scrollbar gutter from the first layout. ScrollTrigger records
-     a pinned section's width when it refreshes, and the feature story's pin
-     was being measured at the full window width before the vertical scrollbar
-     existed. The spacer then kept that stale 1440px against a 1425px viewport
-     — 15px of horizontal overflow, which gave the whole page a horizontal
-     scrollbar. A stable gutter makes the measurement right the first time. */
-  scrollbar-gutter: stable;
-}
-
-body {
-  min-width: 320px;
-  background: var(--bg);
 }
 
 *,
@@ -196,24 +19,62 @@ body {
   box-sizing: border-box;
 }
 
-::selection {
-  color: #031018;
-  background: #b9e2ef;
+html {
+  background: var(--bg-dark);
+  /* Reserve the scrollbar gutter so pinned sections measure at their final
+     width the first time. */
+  scrollbar-gutter: stable;
 }
 
-/* ScrollSmoother's wrapper/content pair. The plugin writes the positioning
-   itself (fixed, full-viewport, overflow hidden on the wrapper); these only
-   make sure the shell is laid out sanely for the frames before it initialises,
-   and in reduced motion where it never does. */
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--bg-dark);
+  color: var(--ink-on-dark);
+}
+
+#root {
+  min-height: 100svh;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+}
+p {
+  margin: 0;
+}
+a {
+  color: inherit;
+}
+
+::selection {
+  color: var(--bg-dark);
+  background: var(--accent-2);
+}
+
 #smooth-wrapper,
 #smooth-content {
   width: 100%;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  /* No smoother in this mode, so the native scroller is the only one there is.
-     `auto` rather than `smooth`: the preference is asking for jumps, not
-     animated travel. */
   html {
     scroll-behavior: auto;
   }

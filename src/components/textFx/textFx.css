@@ -1,0 +1,54 @@
+.hl {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+  line-height: var(--display-leading);
+  text-transform: var(--display-case);
+  text-wrap: balance;
+}
+.hl--dark {
+  color: rgb(var(--ink-on-dark-rgb));
+}
+.hl--bright {
+  color: rgb(var(--ink-on-bright-rgb));
+}
+.hl-mask {
+  display: block;
+  overflow: hidden;
+  /* Room for descenders and accents inside the mask. */
+  padding-block: 0.08em;
+  margin-block: -0.08em;
+}
+.hl-row {
+  display: block;
+  will-change: transform;
+}
+.hl-word {
+  display: inline-block;
+}
+.hl--dark .hl-accent {
+  color: rgb(var(--accent-2-rgb));
+}
+.hl--bright .hl-accent {
+  color: rgb(var(--accent-1-rgb));
+}
+
+.fx-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  font-family: var(--font-pixel);
+  font-size: var(--fs-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(var(--accent-2-rgb));
+}
+.fx-eyebrow::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  background: currentColor;
+}
+.fx-eyebrow--bright {
+  color: rgb(var(--accent-1-rgb));
+}

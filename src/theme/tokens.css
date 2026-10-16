@@ -1,0 +1,208 @@
+/* Colour themes. Each theme only defines RGB triplets; every other colour
+   token is derived below, so legacy rgba(var(--x-rgb), a) usage works too. */
+:root,
+[data-theme="ultraviolet"] {
+  --bg-dark-rgb: 7, 5, 14;
+  --bg-dark-2-rgb: 18, 12, 36;
+  --bg-bright-rgb: 217, 204, 255;
+  --ink-on-dark-rgb: 244, 240, 255;
+  --ink-on-bright-rgb: 7, 5, 14;
+  --accent-1-rgb: 139, 92, 246;
+  --accent-2-rgb: 200, 255, 46;
+  --accent-3-rgb: 255, 77, 141;
+}
+[data-theme="poster"] {
+  --bg-dark-rgb: 11, 11, 15;
+  --bg-dark-2-rgb: 26, 24, 32;
+  --bg-bright-rgb: 255, 246, 229;
+  --ink-on-dark-rgb: 255, 246, 229;
+  --ink-on-bright-rgb: 11, 11, 15;
+  --accent-1-rgb: 255, 179, 71;
+  --accent-2-rgb: 255, 229, 0;
+  --accent-3-rgb: 255, 90, 78;
+}
+[data-theme="acid"] {
+  --bg-dark-rgb: 5, 5, 5;
+  --bg-dark-2-rgb: 20, 20, 20;
+  --bg-bright-rgb: 215, 255, 46;
+  --ink-on-dark-rgb: 247, 255, 224;
+  --ink-on-bright-rgb: 5, 5, 5;
+  --accent-1-rgb: 255, 46, 147;
+  --accent-2-rgb: 215, 255, 46;
+  --accent-3-rgb: 255, 255, 255;
+}
+[data-theme="ember"] {
+  --bg-dark-rgb: 14, 8, 7;
+  --bg-dark-2-rgb: 36, 18, 13;
+  --bg-bright-rgb: 255, 233, 214;
+  --ink-on-dark-rgb: 255, 233, 214;
+  --ink-on-bright-rgb: 14, 8, 7;
+  --accent-1-rgb: 255, 75, 31;
+  --accent-2-rgb: 255, 176, 0;
+  --accent-3-rgb: 255, 77, 141;
+}
+[data-theme="mint"] {
+  --bg-dark-rgb: 4, 16, 13;
+  --bg-dark-2-rgb: 8, 34, 28;
+  --bg-bright-rgb: 200, 255, 233;
+  --ink-on-dark-rgb: 226, 255, 244;
+  --ink-on-bright-rgb: 4, 16, 13;
+  --accent-1-rgb: 25, 230, 140;
+  --accent-2-rgb: 255, 226, 74;
+  --accent-3-rgb: 255, 107, 107;
+}
+[data-theme="bubblegum"] {
+  --bg-dark-rgb: 18, 6, 26;
+  --bg-dark-2-rgb: 40, 14, 54;
+  --bg-bright-rgb: 255, 211, 240;
+  --ink-on-dark-rgb: 255, 236, 248;
+  --ink-on-bright-rgb: 18, 6, 26;
+  --accent-1-rgb: 255, 62, 165;
+  --accent-2-rgb: 255, 226, 74;
+  --accent-3-rgb: 77, 91, 255;
+}
+
+:root {
+  --bg-dark: rgb(var(--bg-dark-rgb));
+  --bg-dark-2: rgb(var(--bg-dark-2-rgb));
+  --bg-bright: rgb(var(--bg-bright-rgb));
+  --ink-on-dark: rgb(var(--ink-on-dark-rgb));
+  --ink-on-bright: rgb(var(--ink-on-bright-rgb));
+  --muted-on-dark: rgba(var(--ink-on-dark-rgb), 0.7);
+  --muted-on-bright: rgba(var(--ink-on-bright-rgb), 0.72);
+  --accent-1: rgb(var(--accent-1-rgb));
+  --accent-2: rgb(var(--accent-2-rgb));
+  --accent-3: rgb(var(--accent-3-rgb));
+  --line: rgba(var(--ink-on-dark-rgb), 0.16);
+  --line-bright: rgba(var(--ink-on-bright-rgb), 0.2);
+  --glow: rgba(var(--accent-1-rgb), 0.55);
+
+  /* Legacy tokens used by the older chapter stylesheets. */
+  --bg: var(--bg-dark);
+  --text: var(--muted-on-dark);
+  --text-h: var(--ink-on-dark);
+  --border: var(--line);
+  --accent: var(--accent-1);
+  --scramble-chars: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/+*";
+}
+
+/* Font systems. Preset 6 (Geist Spec) is the default. */
+:root,
+[data-font="geist"] {
+  --font-display: "Manrope", "Geist Sans", system-ui, sans-serif;
+  --font-body: "Geist Sans", system-ui, sans-serif;
+  --font-ui: "Geist Sans", system-ui, sans-serif;
+  --font-pixel: "Geist Pixel Square", "Geist Sans", monospace;
+  --font-mono: "Geist Pixel Square", ui-monospace, Consolas, monospace;
+  --display-weight: 800;
+  --display-tracking: -0.02em;
+  --display-leading: 1.02;
+  --display-case: none;
+  --display-scale: 1;
+  --nav-weight: 500;
+  --btn-weight: 600;
+}
+[data-font="poster"] {
+  --font-display: "Gabarito", "Manrope", system-ui, sans-serif;
+  --font-body: "DM Mono", ui-monospace, monospace;
+  --font-ui: "DM Mono", ui-monospace, monospace;
+  --font-pixel: "DM Mono", ui-monospace, monospace;
+  --font-mono: "DM Mono", ui-monospace, monospace;
+  --display-weight: 900;
+  --display-tracking: -0.03em;
+  --display-leading: 0.92;
+  --display-case: uppercase;
+  --display-scale: 0.98;
+  --nav-weight: 500;
+  --btn-weight: 500;
+}
+[data-font="quirk"] {
+  --font-display: "Bricolage Grotesque", "Manrope", system-ui, sans-serif;
+  --font-body: "Space Mono", ui-monospace, monospace;
+  --font-ui: "Space Mono", ui-monospace, monospace;
+  --font-pixel: "Space Mono", ui-monospace, monospace;
+  --font-mono: "Space Mono", ui-monospace, monospace;
+  --display-weight: 800;
+  --display-tracking: -0.035em;
+  --display-leading: 0.92;
+  --display-case: none;
+  --display-scale: 1.04;
+  --nav-weight: 700;
+  --btn-weight: 700;
+}
+[data-font="arcade"] {
+  --font-display: "Dela Gothic One", "Manrope", system-ui, sans-serif;
+  --font-body: "Pixelify Sans", ui-monospace, monospace;
+  --font-ui: "Pixelify Sans", ui-monospace, monospace;
+  --font-pixel: "Pixelify Sans", ui-monospace, monospace;
+  --font-mono: "Pixelify Sans", ui-monospace, monospace;
+  --display-weight: 400;
+  --display-tracking: -0.02em;
+  --display-leading: 1;
+  --display-case: uppercase;
+  --display-scale: 0.82;
+  --nav-weight: 500;
+  --btn-weight: 700;
+}
+[data-font="tournament"] {
+  --font-display: "Big Shoulders Display", "Manrope", system-ui, sans-serif;
+  --font-body: "Martian Mono", ui-monospace, monospace;
+  --font-ui: "Martian Mono", ui-monospace, monospace;
+  --font-pixel: "Martian Mono", ui-monospace, monospace;
+  --font-mono: "Martian Mono", ui-monospace, monospace;
+  --display-weight: 900;
+  --display-tracking: -0.01em;
+  --display-leading: 0.88;
+  --display-case: uppercase;
+  --display-scale: 1.28;
+  --nav-weight: 400;
+  --btn-weight: 600;
+}
+[data-font="brutal"] {
+  --font-display: "Archivo", "Manrope", system-ui, sans-serif;
+  --font-body: "IBM Plex Mono", ui-monospace, monospace;
+  --font-ui: "IBM Plex Mono", ui-monospace, monospace;
+  --font-pixel: "IBM Plex Mono", ui-monospace, monospace;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --display-weight: 900;
+  --display-tracking: -0.03em;
+  --display-leading: 0.9;
+  --display-case: uppercase;
+  --display-scale: 1.12;
+  --nav-weight: 500;
+  --btn-weight: 500;
+}
+
+/* Variation settings that only make sense with the variable axes. */
+[data-font="quirk"] .fx-display,
+[data-font="quirk"] h1,
+[data-font="quirk"] h2 {
+  font-variation-settings: "wdth" 75;
+}
+[data-font="brutal"] .fx-display,
+[data-font="brutal"] h1,
+[data-font="brutal"] h2 {
+  font-variation-settings: "wdth" 75;
+}
+
+/* Legacy font aliases. The older chapters reference these names. */
+:root {
+  --sans: var(--font-body);
+  --heading: var(--font-display);
+  --display: var(--font-display);
+  --label: var(--font-mono);
+  --prose: var(--font-body);
+  --mono: var(--font-mono);
+  --hero-font: var(--font-display);
+}
+
+/* Smooth colour crossfade while the Style Lab changes theme. */
+html.theme-switching,
+html.theme-switching *:not(canvas) {
+  transition:
+    background-color 0.5s ease,
+    color 0.5s ease,
+    border-color 0.5s ease,
+    fill 0.5s ease,
+    stroke 0.5s ease !important;
+}

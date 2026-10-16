@@ -8,19 +8,19 @@
    the page's own ink hue rather than neutral black, so the lighting reads as
    a single source rather than a stack of unrelated effects. */
 .feature-story {
-  --f-ink: #071620;
-  --f-ink-soft: #465e6d;
-  --f-ink-faint: rgba(7, 22, 32, 0.42);
-  --f-line: rgba(10, 48, 68, 0.16);
-  --f-line-soft: rgba(10, 48, 68, 0.08);
+  --f-ink: var(--bg-dark);
+  --f-ink-soft: var(--bg-dark-2);
+  --f-ink-faint: rgba(var(--bg-dark-rgb), 0.42);
+  --f-line: rgba(var(--bg-dark-2-rgb), 0.16);
+  --f-line-soft: rgba(var(--bg-dark-2-rgb), 0.08);
   /* The receding floor grid only. Stronger than the flat hairlines because
      the perspective compression eats most of its contrast. */
-  --f-line-floor: rgba(10, 48, 68, 0.2);
-  --f-accent: #17789f;
-  --f-accent-soft: rgba(23, 120, 159, 0.1);
+  --f-line-floor: rgba(var(--bg-dark-2-rgb), 0.2);
+  --f-accent: var(--accent-1);
+  --f-accent-soft: rgba(var(--accent-1-rgb), 0.1);
   --f-sky-top: #f8fbfd;
-  --f-sky-mid: #e9f2f8;
-  --f-sky-edge: #d7e6ef;
+  --f-sky-mid: var(--ink-on-dark);
+  --f-sky-edge: var(--ink-on-dark);
 
   /* Premium motion personality: one signature curve, three durations. */
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
@@ -110,8 +110,8 @@
   height: 62%;
   background: radial-gradient(
     circle at 50% 50%,
-    rgba(203, 228, 242, 0.9),
-    rgba(203, 228, 242, 0) 70%
+    rgba(var(--ink-on-dark-rgb), 0.9),
+    rgba(var(--ink-on-dark-rgb), 0) 70%
   );
   animation: fs-drift-b 50s ease-in-out infinite alternate;
 }
@@ -172,15 +172,15 @@
   mask-image: radial-gradient(
     92% 118% at 50% 110%,
     #000 0%,
-    rgba(0, 0, 0, 0.7) 46%,
-    rgba(0, 0, 0, 0.24) 74%,
+    rgba(var(--bg-dark-rgb), 0.7) 46%,
+    rgba(var(--bg-dark-rgb), 0.24) 74%,
     transparent 96%
   );
   -webkit-mask-image: radial-gradient(
     92% 118% at 50% 110%,
     #000 0%,
-    rgba(0, 0, 0, 0.7) 46%,
-    rgba(0, 0, 0, 0.24) 74%,
+    rgba(var(--bg-dark-rgb), 0.7) 46%,
+    rgba(var(--bg-dark-rgb), 0.24) 74%,
     transparent 96%
   );
   will-change: transform;
@@ -223,7 +223,7 @@
   inset: 0;
   opacity: 0.3;
   background-image: radial-gradient(
-    rgba(9, 40, 56, 0.05) 1px,
+    rgba(var(--bg-dark-2-rgb), 0.05) 1px,
     transparent 1px
   );
   background-size: 3px 3px;
@@ -254,9 +254,9 @@
   pointer-events: none;
   background: linear-gradient(
     180deg,
-    rgba(215, 230, 239, 0) 0%,
-    rgba(215, 230, 239, 0.68) 58%,
-    #d7e6ef 94%
+    rgba(var(--ink-on-dark-rgb), 0) 0%,
+    rgba(var(--ink-on-dark-rgb), 0.68) 58%,
+    var(--ink-on-dark) 94%
   );
 }
 
@@ -301,13 +301,13 @@
   letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
   color: transparent;
-  -webkit-text-stroke: 1.25px rgba(23, 120, 159, 0.22);
+  -webkit-text-stroke: 1.25px rgba(var(--accent-1-rgb), 0.22);
   /* A whisper of fill toward the baseline so the outline doesn't read as a
      wireframe — light catching the inside of the letterform. */
   background: linear-gradient(
     172deg,
-    rgba(23, 120, 159, 0.05) 0%,
-    rgba(23, 120, 159, 0.015) 62%,
+    rgba(var(--accent-1-rgb), 0.05) 0%,
+    rgba(var(--accent-1-rgb), 0.015) 62%,
     transparent 100%
   );
   -webkit-background-clip: text;
@@ -354,9 +354,9 @@
   opacity: var(--fv-alpha, 1);
   background: radial-gradient(
     closest-side,
-    rgba(7, 40, 58, 0.3) 0%,
-    rgba(7, 40, 58, 0.13) 44%,
-    rgba(7, 40, 58, 0) 78%
+    rgba(var(--bg-dark-2-rgb), 0.3) 0%,
+    rgba(var(--bg-dark-2-rgb), 0.13) 44%,
+    rgba(var(--bg-dark-2-rgb), 0) 78%
   );
   filter: blur(10px);
 }
@@ -384,8 +384,8 @@
   border-radius: 50%;
   background: radial-gradient(
     closest-side,
-    rgba(6, 32, 47, 0.38) 0%,
-    rgba(6, 32, 47, 0) 100%
+    rgba(var(--bg-dark-2-rgb), 0.38) 0%,
+    rgba(var(--bg-dark-2-rgb), 0) 100%
   );
   filter: blur(5px);
 }
@@ -441,7 +441,7 @@
   background: linear-gradient(
     180deg,
     var(--f-accent),
-    rgba(23, 120, 159, 0.35)
+    rgba(var(--accent-1-rgb), 0.35)
   );
   transform: scaleY(var(--fs-progress));
 }
@@ -669,7 +669,7 @@
   background: linear-gradient(
     90deg,
     var(--f-accent) 0%,
-    rgba(23, 120, 159, 0.18) 70%,
+    rgba(var(--accent-1-rgb), 0.18) 70%,
     transparent 100%
   );
   will-change: transform, opacity;
@@ -706,8 +706,8 @@
      text-decoration would, and so it never breaks the line's rhythm. */
   background-image: linear-gradient(
     90deg,
-    rgba(23, 120, 159, 0.42),
-    rgba(23, 120, 159, 0.42)
+    rgba(var(--accent-1-rgb), 0.42),
+    rgba(var(--accent-1-rgb), 0.42)
   );
   background-size: 100% 1px;
   background-position: 0 calc(100% - 1px);
@@ -878,7 +878,7 @@
     font-size: clamp(124px, 32vw, 186px);
     line-height: 0.9;
     -webkit-text-stroke-width: 0;
-    color: rgba(23, 120, 159, 0.1);
+    color: rgba(var(--accent-1-rgb), 0.1);
     background: none;
     -webkit-background-clip: border-box;
     background-clip: border-box;

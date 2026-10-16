@@ -1,0 +1,97 @@
+/* Type scale. Desktop values at 1024px and up, mobile at 767px and below,
+   interpolated in between. Display tokens are multiplied by --display-scale. */
+:root {
+  --t: calc((100vw - 767px) / 257);
+  --fs-hero: calc(clamp(48px, 48px + 40 * var(--t) * 1px, 88px) * var(--display-scale));
+  --fs-hero-2: calc(clamp(42px, 42px + 30 * var(--t) * 1px, 72px) * var(--display-scale));
+  --fs-h1: calc(clamp(32px, 32px + 16 * var(--t) * 1px, 48px) * var(--display-scale));
+  --fs-h2: calc(clamp(28px, 28px + 8 * var(--t) * 1px, 36px) * var(--display-scale));
+  --fs-h3: clamp(24px, 24px + 4 * var(--t) * 1px, 28px);
+  --fs-h4: clamp(20px, 20px + 2 * var(--t) * 1px, 22px);
+  --fs-lead: clamp(18px, 18px + 2 * var(--t) * 1px, 20px);
+  --fs-body: 16px;
+  --fs-small: 14px;
+  --fs-nav: 14px;
+  --fs-btn: 14px;
+  --fs-label: clamp(11px, 11px + 1 * var(--t) * 1px, 12px);
+  --fs-meta: 12px;
+  --fs-pixel: clamp(10px, 10px + 4 * var(--t) * 1px, 14px);
+  --fs-pixel-lg: clamp(12px, 12px + 4 * var(--t) * 1px, 16px);
+}
+
+@media (max-width: 767px) {
+  :root {
+    --t: 0;
+  }
+}
+@media (min-width: 1024px) {
+  :root {
+    --t: 1;
+  }
+}
+
+.fx-display,
+.fx-h1,
+.fx-h2,
+.fx-hero {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+  line-height: var(--display-leading);
+  text-transform: var(--display-case);
+  text-wrap: balance;
+}
+.fx-hero {
+  font-size: var(--fs-hero);
+}
+.fx-hero-2 {
+  font-size: var(--fs-hero-2);
+}
+.fx-h1 {
+  font-size: var(--fs-h1);
+}
+.fx-h2 {
+  font-size: var(--fs-h2);
+}
+.fx-h3 {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+  font-size: var(--fs-h3);
+  line-height: 1.1;
+  text-transform: var(--display-case);
+}
+.fx-h4 {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-size: var(--fs-h4);
+  line-height: 1.15;
+  letter-spacing: var(--display-tracking);
+  text-transform: var(--display-case);
+}
+.fx-lead {
+  font-size: var(--fs-lead);
+  line-height: 1.5;
+}
+.fx-eyebrow {
+  font-family: var(--font-pixel);
+  font-size: var(--fs-pixel);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+.fx-label {
+  font-family: var(--font-pixel);
+  font-size: var(--fs-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.fx-meta {
+  font-size: var(--fs-meta);
+}
+.fx-pixel {
+  font-family: var(--font-pixel);
+  font-size: var(--fs-pixel-lg);
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+}

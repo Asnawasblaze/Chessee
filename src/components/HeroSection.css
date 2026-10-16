@@ -8,7 +8,7 @@
      at rgb(0,1,6) across its corners/edges) rather than an eyeballed
      dark tone — this is what keeps the primary.webp cutout's edges from
      showing a color seam against the section fill, i.e. looking pasted. */
-  background: #000106;
+  background: var(--bg-dark);
   isolation: isolate;
 }
 
@@ -137,16 +137,16 @@
       ellipse calc(var(--rv-r) * 1.55) calc(var(--rv-r) * 0.92) at
         calc(var(--rv-r) * 1.6) var(--rv-r),
       #000 0%,
-      rgba(0, 0, 0, 0.92) 18%,
-      rgba(0, 0, 0, 0.54) 48%,
-      rgba(0, 0, 0, 0.14) 74%,
+      rgba(var(--bg-dark-rgb), 0.92) 18%,
+      rgba(var(--bg-dark-rgb), 0.54) 48%,
+      rgba(var(--bg-dark-rgb), 0.14) 74%,
       transparent 100%
     ),
     radial-gradient(
       ellipse calc(var(--rv-r) * 0.82) calc(var(--rv-r) * 0.56) at
         calc(var(--rv-r) * 1.94) calc(var(--rv-r) * 0.8),
-      rgba(0, 0, 0, 0.72) 0%,
-      rgba(0, 0, 0, 0.26) 58%,
+      rgba(var(--bg-dark-rgb), 0.72) 0%,
+      rgba(var(--bg-dark-rgb), 0.26) 58%,
       transparent 100%
     );
   -webkit-mask-composite: source-over;
@@ -155,16 +155,16 @@
       ellipse calc(var(--rv-r) * 1.55) calc(var(--rv-r) * 0.92) at
         calc(var(--rv-r) * 1.6) var(--rv-r),
       #000 0%,
-      rgba(0, 0, 0, 0.92) 18%,
-      rgba(0, 0, 0, 0.54) 48%,
-      rgba(0, 0, 0, 0.14) 74%,
+      rgba(var(--bg-dark-rgb), 0.92) 18%,
+      rgba(var(--bg-dark-rgb), 0.54) 48%,
+      rgba(var(--bg-dark-rgb), 0.14) 74%,
       transparent 100%
     ),
     radial-gradient(
       ellipse calc(var(--rv-r) * 0.82) calc(var(--rv-r) * 0.56) at
         calc(var(--rv-r) * 1.94) calc(var(--rv-r) * 0.8),
-      rgba(0, 0, 0, 0.72) 0%,
-      rgba(0, 0, 0, 0.26) 58%,
+      rgba(var(--bg-dark-rgb), 0.72) 0%,
+      rgba(var(--bg-dark-rgb), 0.26) 58%,
       transparent 100%
     );
   mask-composite: add;
@@ -207,7 +207,7 @@
      tucked behind its frame instead of sliding under the artwork. */
   z-index: 0;
   box-sizing: border-box;
-  color: #7dafc2;
+  color: var(--accent-1);
   font-family: var(--mono, ui-monospace, Consolas, monospace);
   /* The root stylesheet sets line-height as an absolute 145% of 18px, which
      is inherited as ~26px and would give every 10px caption in here the
@@ -233,8 +233,8 @@
   pointer-events: none;
   border-radius: 42% / 46%;
   background:
-    radial-gradient(58% 58% at 26% 24%, rgba(104, 206, 244, 0.17), transparent 72%),
-    radial-gradient(66% 66% at 76% 82%, rgba(52, 146, 208, 0.13), transparent 74%);
+    radial-gradient(58% 58% at 26% 24%, rgba(var(--accent-1-rgb), 0.17), transparent 72%),
+    radial-gradient(66% 66% at 76% 82%, rgba(var(--accent-1-rgb), 0.13), transparent 74%);
   filter: blur(11px);
   animation: holo-aura-breathe 5.4s ease-in-out infinite;
 }
@@ -264,21 +264,21 @@
     /* fine scanlines */
     repeating-linear-gradient(
       180deg,
-      rgba(140, 224, 255, 0.02) 0px,
-      rgba(140, 224, 255, 0.02) 1px,
+      rgba(var(--accent-1-rgb), 0.02) 0px,
+      rgba(var(--accent-1-rgb), 0.02) 1px,
       transparent 1px,
       transparent 3px
     ),
     /* light entering from the top-left corner, like a projector cone */
     radial-gradient(
       130% 95% at 10% -8%,
-      rgba(78, 180, 224, 0.16) 0%,
+      rgba(var(--accent-1-rgb), 0.16) 0%,
       transparent 62%
     ),
     linear-gradient(
       165deg,
-      rgba(6, 19, 29, 0.78) 0%,
-      rgba(2, 8, 13, 0.9) 100%
+      rgba(var(--bg-dark-rgb), 0.78) 0%,
+      rgba(var(--bg-dark-rgb), 0.9) 100%
     );
   /* No backdrop-filter here on purpose. The panel's own background above is
      78-90% opaque, so a 2.5px blur behind it was not visible — but it did
@@ -287,18 +287,18 @@
      as a whole dropped frame during scroll. The frosted-glass cue is kept
      where it actually reads: the nav pill (.hero-nav), which sits on a 42%
      background. */
-  border: 1px solid rgba(126, 222, 255, 0.2);
+  border: 1px solid rgba(var(--accent-1-rgb), 0.2);
   border-radius: 3px;
   box-shadow:
-    inset 0 1px rgba(178, 238, 255, 0.16),
-    inset 0 0 24px rgba(56, 189, 248, 0.07),
-    0 0 0 1px rgba(120, 218, 255, 0.05),
+    inset 0 1px rgba(var(--ink-on-dark-rgb), 0.16),
+    inset 0 0 24px rgba(var(--accent-1-rgb), 0.07),
+    0 0 0 1px rgba(var(--accent-1-rgb), 0.05),
     /* Outer glow pulled in from 38px: combined with the aura it was throwing
        a halo wider than the bracket gap, which is what made the frame look
        like it sat inside a bigger, softer box. */
-    0 0 10px rgba(64, 176, 232, 0.14),
-    0 0 24px rgba(42, 142, 200, 0.1),
-    0 8px 20px rgba(0, 3, 8, 0.46);
+    0 0 10px rgba(var(--accent-1-rgb), 0.14),
+    0 0 24px rgba(var(--accent-1-rgb), 0.1),
+    0 8px 20px rgba(var(--bg-dark-rgb), 0.46);
   display: flex;
   flex-direction: column;
   gap: clamp(4px, 0.76cqw, 9px);
@@ -332,10 +332,10 @@
   z-index: 0;
   background-image: linear-gradient(
       90deg,
-      rgba(125, 216, 255, 0.03) 1px,
+      rgba(var(--accent-1-rgb), 0.03) 1px,
       transparent 1px
     ),
-    linear-gradient(0deg, rgba(125, 216, 255, 0.03) 1px, transparent 1px);
+    linear-gradient(0deg, rgba(var(--accent-1-rgb), 0.03) 1px, transparent 1px);
   background-size: 10px 10px;
   pointer-events: none;
 }
@@ -352,9 +352,9 @@
   background: linear-gradient(
     180deg,
     transparent 0%,
-    rgba(150, 228, 255, 0.11) 46%,
-    rgba(198, 242, 255, 0.16) 50%,
-    rgba(150, 228, 255, 0.11) 54%,
+    rgba(var(--ink-on-dark-rgb), 0.11) 46%,
+    rgba(var(--ink-on-dark-rgb), 0.16) 50%,
+    rgba(var(--ink-on-dark-rgb), 0.11) 54%,
     transparent 100%
   );
   pointer-events: none;
@@ -380,8 +380,8 @@
   pointer-events: none;
   background: repeating-linear-gradient(
     180deg,
-    rgba(158, 232, 255, 0.05) 0px,
-    rgba(158, 232, 255, 0.05) 1px,
+    rgba(var(--ink-on-dark-rgb), 0.05) 0px,
+    rgba(var(--ink-on-dark-rgb), 0.05) 1px,
     transparent 1px,
     transparent 6px
   );
@@ -409,15 +409,15 @@
     linear-gradient(
         90deg,
         transparent 4%,
-        rgba(168, 236, 255, 0.5) 38%,
-        rgba(210, 248, 255, 0.62) 52%,
+        rgba(var(--ink-on-dark-rgb), 0.5) 38%,
+        rgba(var(--ink-on-dark-rgb), 0.62) 52%,
         transparent 96%
       )
       top / 100% 1px no-repeat,
     linear-gradient(
         90deg,
         transparent 12%,
-        rgba(140, 220, 250, 0.26) 50%,
+        rgba(var(--accent-1-rgb), 0.26) 50%,
         transparent 92%
       )
       bottom / 100% 1px no-repeat;
@@ -493,8 +493,8 @@
   width: var(--holo-bracket);
   height: var(--holo-bracket);
   z-index: 3;
-  border: 0 solid #7ec2da;
-  filter: drop-shadow(0 0 3px rgba(150, 224, 250, 0.5));
+  border: 0 solid var(--accent-1);
+  filter: drop-shadow(0 0 3px rgba(var(--accent-1-rgb), 0.5));
   pointer-events: none;
 }
 
@@ -510,12 +510,12 @@
 
 @keyframes holo-corner-flare {
   0% {
-    border-color: #eafaff;
-    filter: drop-shadow(0 0 9px rgba(200, 244, 255, 0.95));
+    border-color: var(--ink-on-dark);
+    filter: drop-shadow(0 0 9px rgba(var(--ink-on-dark-rgb), 0.95));
   }
   100% {
-    border-color: #7ec2da;
-    filter: drop-shadow(0 0 3px rgba(150, 224, 250, 0.5));
+    border-color: var(--accent-1);
+    filter: drop-shadow(0 0 3px rgba(var(--accent-1-rgb), 0.5));
   }
 }
 
@@ -575,12 +575,12 @@
      large min-widths and ended up oversized. */
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #a8d2e0;
+  color: var(--accent-1);
 }
 
 .holo-label-text {
   white-space: nowrap;
-  text-shadow: 0 0 6px rgba(148, 226, 255, 0.3);
+  text-shadow: 0 0 6px rgba(var(--ink-on-dark-rgb), 0.3);
 }
 
 .holo-label-rule {
@@ -589,8 +589,8 @@
   height: 1px;
   background: linear-gradient(
     90deg,
-    rgba(150, 222, 246, 0.42),
-    rgba(150, 222, 246, 0.04)
+    rgba(var(--accent-1-rgb), 0.42),
+    rgba(var(--accent-1-rgb), 0.04)
   );
 }
 
@@ -600,11 +600,11 @@
   font-size: 0.92em;
   font-weight: 600;
   letter-spacing: 0.1em;
-  color: rgba(190, 238, 251, 0.74);
-  border: 1px solid rgba(150, 222, 246, 0.24);
+  color: rgba(var(--ink-on-dark-rgb), 0.74);
+  border: 1px solid rgba(var(--accent-1-rgb), 0.24);
   border-radius: 2px;
-  background: rgba(94, 200, 240, 0.08);
-  box-shadow: inset 0 0 9px rgba(120, 214, 250, 0.14);
+  background: rgba(var(--accent-1-rgb), 0.08);
+  box-shadow: inset 0 0 9px rgba(var(--accent-1-rgb), 0.14);
 }
 
 .holo-label::before {
@@ -613,8 +613,8 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #7fd8f0;
-  box-shadow: 0 0 6px rgba(127, 216, 240, 0.8);
+  background: var(--accent-1);
+  box-shadow: 0 0 6px rgba(var(--accent-1-rgb), 0.8);
   animation: holo-pulse-dot 1.6s ease-in-out infinite;
 }
 
@@ -641,7 +641,7 @@
      HUD read a size too big for the scene. */
   font-size: clamp(15px, 1.62cqw, 23px);
   font-weight: 700;
-  color: #a6e8fa;
+  color: var(--ink-on-dark);
   line-height: 1.04;
   letter-spacing: -0.015em;
   white-space: nowrap;
@@ -652,9 +652,9 @@
      can't give on its own. */
   text-shadow:
     0.7px 0 rgba(255, 104, 132, 0.24),
-    -0.7px 0 rgba(96, 226, 255, 0.3),
-    0 0 7px rgba(126, 216, 246, 0.42),
-    0 0 20px rgba(74, 176, 226, 0.24);
+    -0.7px 0 rgba(var(--accent-1-rgb), 0.3),
+    0 0 7px rgba(var(--accent-1-rgb), 0.42),
+    0 0 20px rgba(var(--accent-1-rgb), 0.24);
 }
 
 /* Denominators sit well below the digits they qualify, so "28/45" reads as
@@ -664,7 +664,7 @@
   font-size: 0.46em;
   font-weight: 600;
   letter-spacing: 0.06em;
-  color: rgba(166, 232, 250, 0.52);
+  color: rgba(var(--ink-on-dark-rgb), 0.52);
   text-shadow: none;
 }
 
@@ -675,10 +675,10 @@
   font-size: 0.68em;
   font-weight: 700;
   letter-spacing: 0;
-  color: rgba(186, 240, 253, 0.9);
+  color: rgba(var(--ink-on-dark-rgb), 0.9);
   text-shadow:
-    0 0 7px rgba(126, 216, 246, 0.42),
-    0 0 20px rgba(74, 176, 226, 0.24);
+    0 0 7px rgba(var(--accent-1-rgb), 0.42),
+    0 0 20px rgba(var(--accent-1-rgb), 0.24);
 }
 
 .holo-value.large {
@@ -699,7 +699,7 @@
 }
 
 .holo-value.positive {
-  color: #8ce0f6;
+  color: var(--accent-1);
 }
 
 .holo-value.negative {
@@ -733,16 +733,16 @@
   font-weight: 700;
   letter-spacing: 0.03em;
   font-variant-numeric: tabular-nums;
-  color: rgba(178, 214, 226, 0.5);
-  border: 1px solid rgba(150, 222, 246, 0.14);
+  color: rgba(var(--accent-1-rgb), 0.5);
+  border: 1px solid rgba(var(--accent-1-rgb), 0.14);
   border-radius: 2px;
   transition: color 200ms ease, border-color 200ms ease, background-color 200ms ease;
 }
 
 .holo-delta.up {
-  color: #8ce0f6;
-  border-color: rgba(140, 224, 246, 0.34);
-  background: rgba(94, 200, 240, 0.09);
+  color: var(--accent-1);
+  border-color: rgba(var(--accent-1-rgb), 0.34);
+  background: rgba(var(--accent-1-rgb), 0.09);
 }
 
 .holo-delta.down {
@@ -765,14 +765,14 @@
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(163, 205, 220, 0.54);
+  color: rgba(var(--accent-1-rgb), 0.54);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .holo-meta b {
   font-weight: 700;
-  color: rgba(200, 240, 251, 0.88);
+  color: rgba(var(--ink-on-dark-rgb), 0.88);
 }
 
 .holo-meta-sep {
@@ -781,8 +781,8 @@
   height: 1px;
   background: linear-gradient(
     90deg,
-    rgba(150, 222, 246, 0.22),
-    rgba(150, 222, 246, 0.04)
+    rgba(var(--accent-1-rgb), 0.22),
+    rgba(var(--accent-1-rgb), 0.04)
   );
 }
 
@@ -791,11 +791,11 @@
   position: relative;
   height: 5px;
   margin-top: 2px;
-  border: 1px solid rgba(150, 222, 246, 0.18);
+  border: 1px solid rgba(var(--accent-1-rgb), 0.18);
   background: repeating-linear-gradient(
     90deg,
-    rgba(150, 222, 246, 0.13) 0px,
-    rgba(150, 222, 246, 0.13) 1px,
+    rgba(var(--accent-1-rgb), 0.13) 0px,
+    rgba(var(--accent-1-rgb), 0.13) 1px,
     transparent 1px,
     transparent 5px
   );
@@ -808,10 +808,10 @@
   width: 0;
   background: linear-gradient(
     90deg,
-    rgba(84, 190, 236, 0.32),
-    rgba(178, 240, 255, 0.92)
+    rgba(var(--accent-1-rgb), 0.32),
+    rgba(var(--ink-on-dark-rgb), 0.92)
   );
-  box-shadow: 0 0 10px rgba(140, 224, 250, 0.7);
+  box-shadow: 0 0 10px rgba(var(--accent-1-rgb), 0.7);
 }
 
 .holo-bar-fill::after {
@@ -821,8 +821,8 @@
   bottom: -1px;
   right: 0;
   width: 2px;
-  background: #e8fbff;
-  box-shadow: 0 0 8px rgba(200, 246, 255, 0.95);
+  background: var(--ink-on-dark);
+  box-shadow: 0 0 8px rgba(var(--ink-on-dark-rgb), 0.95);
 }
 
 /* Sub-heading for a secondary block inside a panel: caption plus a hairline
@@ -836,7 +836,7 @@
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(163, 205, 220, 0.5);
+  color: rgba(var(--accent-1-rgb), 0.5);
 }
 
 .holo-caption span {
@@ -849,8 +849,8 @@
   height: 1px;
   background: linear-gradient(
     90deg,
-    rgba(150, 222, 246, 0.28),
-    rgba(150, 222, 246, 0.03)
+    rgba(var(--accent-1-rgb), 0.28),
+    rgba(var(--accent-1-rgb), 0.03)
   );
 }
 
@@ -858,11 +858,11 @@
 .holo-pv {
   min-width: 0;
   font-size: clamp(9.5px, 0.82cqw, 12px);
-  color: rgba(184, 222, 236, 0.62);
+  color: rgba(var(--ink-on-dark-rgb), 0.62);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-shadow: 0 0 6px rgba(120, 200, 235, 0.25);
+  text-shadow: 0 0 6px rgba(var(--accent-1-rgb), 0.25);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -930,11 +930,11 @@
 }
 
 .chart-grid line {
-  stroke: rgba(150, 222, 246, 0.085);
+  stroke: rgba(var(--accent-1-rgb), 0.085);
 }
 
 .chart-zero {
-  stroke: rgba(186, 232, 248, 0.3);
+  stroke: rgba(var(--ink-on-dark-rgb), 0.3);
   stroke-dasharray: 3 3;
 }
 
@@ -965,7 +965,7 @@
 
 /* Vertical marker on the ply being searched. */
 .chart-head {
-  stroke: rgba(186, 232, 248, 0.32);
+  stroke: rgba(var(--ink-on-dark-rgb), 0.32);
 }
 
 .chart-dot {
@@ -985,7 +985,7 @@
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(163, 205, 220, 0.34);
+  color: rgba(var(--accent-1-rgb), 0.34);
 }
 
 .chart-axis i {
@@ -1021,18 +1021,18 @@
    costing a full frame. Stacked wide/translucent strokes give the same
    bloom for a fraction of the cost. */
 .holo-link-beam {
-  stroke: rgba(126, 208, 244, 0.1);
+  stroke: rgba(var(--accent-1-rgb), 0.1);
   stroke-width: 9;
 }
 
 .holo-link-base {
-  stroke: rgba(150, 222, 246, 0.38);
+  stroke: rgba(var(--accent-1-rgb), 0.38);
   stroke-width: 1;
 }
 
 /* Second, wider pass of the base line — stands in for its drop-shadow. */
 .holo-link-base-glow {
-  stroke: rgba(110, 200, 240, 0.16);
+  stroke: rgba(var(--accent-1-rgb), 0.16);
   stroke-width: 3.5;
 }
 
@@ -1047,13 +1047,13 @@
 }
 
 .holo-link-flow {
-  stroke: rgba(216, 248, 255, 0.95);
+  stroke: rgba(var(--ink-on-dark-rgb), 0.95);
   stroke-width: 1.6;
 }
 
 /* The packet's halo: same dash, same clock, wider and translucent. */
 .holo-link-flow-glow {
-  stroke: rgba(170, 234, 255, 0.32);
+  stroke: rgba(var(--ink-on-dark-rgb), 0.32);
   stroke-width: 5.5;
 }
 
@@ -1067,16 +1067,16 @@
 }
 
 .holo-link-dock {
-  fill: #dcf8ff;
+  fill: var(--ink-on-dark);
 }
 
 /* Halo around the dock point, drawn instead of filtered. */
 .holo-link-dock-glow {
-  fill: rgba(180, 238, 255, 0.3);
+  fill: rgba(var(--ink-on-dark-rgb), 0.3);
 }
 
 .holo-link-dock-ring {
-  stroke: rgba(170, 230, 250, 0.4);
+  stroke: rgba(var(--ink-on-dark-rgb), 0.4);
   stroke-width: 1;
   transform-box: fill-box;
   transform-origin: center;
@@ -1098,20 +1098,20 @@
 /* Target lock on the lit piece: fixed ring, slow dashed sweep, expanding
    ping, and framing brackets. */
 .holo-anchor-core {
-  fill: #eafcff;
+  fill: var(--ink-on-dark);
 }
 
 .holo-anchor-core-glow {
-  fill: rgba(200, 246, 255, 0.28);
+  fill: rgba(var(--ink-on-dark-rgb), 0.28);
 }
 
 .holo-anchor-ring {
-  stroke: rgba(196, 242, 255, 0.6);
+  stroke: rgba(var(--ink-on-dark-rgb), 0.6);
   stroke-width: 1;
 }
 
 .holo-anchor-dash {
-  stroke: rgba(176, 232, 252, 0.4);
+  stroke: rgba(var(--ink-on-dark-rgb), 0.4);
   stroke-width: 1;
   stroke-dasharray: 3 6;
   transform-box: fill-box;
@@ -1126,7 +1126,7 @@
 }
 
 .holo-anchor-pulse {
-  stroke: rgba(190, 240, 255, 0.55);
+  stroke: rgba(var(--ink-on-dark-rgb), 0.55);
   stroke-width: 1;
   transform-box: fill-box;
   transform-origin: center;
@@ -1155,12 +1155,12 @@
 }
 
 .holo-anchor-bracket {
-  stroke: rgba(214, 248, 255, 0.78);
+  stroke: rgba(var(--ink-on-dark-rgb), 0.78);
   stroke-width: 1.4;
 }
 
 .holo-anchor-bracket-glow {
-  stroke: rgba(160, 232, 255, 0.22);
+  stroke: rgba(var(--ink-on-dark-rgb), 0.22);
   stroke-width: 4.5;
 }
 
@@ -1215,7 +1215,7 @@
   height: auto;
   min-height: max(760px, 100dvh);
   color: #f4f8fb;
-  background: #030710;
+  background: var(--bg-dark);
   font-family: var(--sans, "Segoe UI Variable", "Segoe UI", sans-serif);
 }
 
@@ -1225,9 +1225,9 @@
   z-index: 6;
   pointer-events: none;
   background:
-    linear-gradient(90deg, rgba(3, 7, 16, 0.97) 0%, rgba(3, 7, 16, 0.82) 24%, rgba(3, 7, 16, 0.28) 48%, rgba(3, 7, 16, 0.03) 72%),
-    linear-gradient(180deg, rgba(3, 7, 16, 0.78) 0%, transparent 20%, transparent 68%, rgba(3, 7, 16, 0.78) 100%),
-    radial-gradient(circle at 18% 48%, rgba(53, 150, 190, 0.08), transparent 34%);
+    linear-gradient(90deg, rgba(var(--bg-dark-rgb), 0.97) 0%, rgba(var(--bg-dark-rgb), 0.82) 24%, rgba(var(--bg-dark-rgb), 0.28) 48%, rgba(var(--bg-dark-rgb), 0.03) 72%),
+    linear-gradient(180deg, rgba(var(--bg-dark-rgb), 0.78) 0%, transparent 20%, transparent 68%, rgba(var(--bg-dark-rgb), 0.78) 100%),
+    radial-gradient(circle at 18% 48%, rgba(var(--accent-1-rgb), 0.08), transparent 34%);
 }
 
 .hero-atmosphere::after {
@@ -1295,11 +1295,11 @@
     from var(--edge-angle),
     transparent 0deg,
     transparent 62deg,
-    rgba(66, 187, 241, 0.05) 74deg,
-    rgba(126, 218, 250, 0.5) 84deg,
-    rgba(226, 246, 255, 0.95) 90deg,
-    rgba(126, 218, 250, 0.5) 96deg,
-    rgba(66, 187, 241, 0.05) 106deg,
+    rgba(var(--accent-1-rgb), 0.05) 74deg,
+    rgba(var(--accent-1-rgb), 0.5) 84deg,
+    rgba(var(--ink-on-dark-rgb), 0.95) 90deg,
+    rgba(var(--accent-1-rgb), 0.5) 96deg,
+    rgba(var(--accent-1-rgb), 0.05) 106deg,
     transparent 118deg,
     transparent 360deg
   );
@@ -1322,370 +1322,15 @@
 .hero-section {
   --hero-font: "Inter", var(--sans, system-ui, sans-serif);
   --hero-ease: cubic-bezier(0.16, 1, 0.3, 1);
-  --hero-cyan: #8ad8f0;
+  --hero-cyan: var(--accent-1);
   /* Accent used by the copy column's highlighted words and the rule under
      the headline. Deliberately a step more saturated (and bluer) than
      --hero-cyan: at 300-weight type the pale cyan was the right call, but
      against a 700-weight headline set in pure white the pale tint reads as
      grey-blue rather than as a highlight. This is the value the reference
      comp uses for "See" / "grandmaster" and the wordmark's mark. */
-  --hero-accent: #42bbf1;
-  --hero-ink: #04121a;
-}
-
-.hero-header {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: clamp(16px, 3vw, 48px);
-  padding: clamp(18px, 2.1vw, 30px) clamp(22px, 4vw, 64px);
-}
-
-.hero-logo {
-  display: inline-flex;
-  align-items: center;
-  gap: 11px;
-  text-decoration: none;
-  line-height: 1;
-  white-space: nowrap;
-  /* Everything in the wordmark inherits this, so a single colour change on
-     hover moves the mark and the type together. Full value: the wordmark and
-     the nav are the page's chrome, and holding them at 0.74 left the header
-     looking half-loaded next to a headline set in white. */
-  color: rgba(255, 255, 255, 0.96);
-  transition: color 0.3s ease;
-}
-
-/* Line-drawn mark: a hairline tile with two filled checker squares. The
-   previous version was a solid cyan-gradient tile with a 14px coloured
-   drop-shadow, which made a 34px logo the third-brightest object in a
-   near-black frame. An outline at 1px reads as chess just as clearly and
-   sits *in* the scene instead of on top of it. */
-/* The mark keeps the accent while the wordmark next to it goes white — the
-   SVG is drawn in currentColor, so overriding it here is enough. Splitting the
-   two is what stops the header from becoming a solid white block: mark and
-   "SEE" carry the colour, "CHES" and the nav carry the value. */
-.hero-logo-mark {
-  display: inline-flex;
-  width: 26px;
-  height: 26px;
-  color: var(--hero-accent);
-  transition: transform 0.4s var(--hero-ease), color 0.3s ease;
-}
-
-.hero-logo-mark svg {
-  width: 100%;
-  height: 100%;
-}
-
-.hero-logo:hover,
-.hero-logo:focus-visible {
-  color: #ffffff;
-  outline: none;
-}
-
-.hero-logo:hover .hero-logo-mark,
-.hero-logo:focus-visible .hero-logo-mark {
-  transform: rotate(-6deg);
-}
-
-/* 800 at up to 25px was shouting next to type that is now 300. Light weight
-   at wide tracking carries the same brand presence through spacing rather
-   than through mass — and small tracked-out caps is the one typographic
-   register the HUD captions already use, so the header and the readouts read
-   as one system. */
-.hero-logo-word {
-  font-family: var(--hero-font);
-  font-weight: 500;
-  font-size: clamp(12.5px, 1.05vw, 14.5px);
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: inherit;
-}
-
-/* The "SEE" wordplay, kept but unlit: a flat cyan tint against the white
-   wordmark. The gradient fill plus a 22px cyan bloom was reading as a glowing
-   badge rather than as a word, so this stays a flat colour — just a brighter
-   one, matching the headline's accent now that the ink beside it is white. */
-.logo-see {
-  color: #4ecbfb;
-  transition: color 0.3s ease;
-}
-
-.hero-logo:hover .logo-see,
-.hero-logo:focus-visible .logo-see {
-  color: rgba(186, 233, 250, 1);
-}
-
-/* Frosted pill holding the nav, back as a real container — the links needed
-   something to sit in so the header reads as three grouped objects rather
-   than eight loose words. Kept quieter than the original: the border is a
-   hairline, the fill is dark rather than lit, and the glow is an outer bloom
-   at low alpha so the capsule's edge catches light without becoming a bright
-   shape of its own. */
-.hero-nav {
-  position: relative;
-  /* The capsule owns its stacking context, so the travelling edge light and
-     the links have a predictable paint order against the pill's own background
-     instead of depending on where they sit in the document. */
-  isolation: isolate;
-  display: flex;
-  align-items: center;
-  gap: clamp(2px, 0.4vw, 6px);
-  padding: 6px clamp(6px, 0.7vw, 10px);
-  border-radius: 999px;
-  background: rgba(8, 19, 28, 0.4);
-  border: 1px solid rgba(150, 214, 236, 0.16);
-  backdrop-filter: blur(12px) saturate(115%);
-  -webkit-backdrop-filter: blur(12px) saturate(115%);
-  box-shadow:
-    inset 0 1px rgba(198, 236, 250, 0.07),
-    0 0 0 1px rgba(120, 200, 228, 0.04),
-    0 0 18px rgba(96, 186, 222, 0.1),
-    0 8px 24px rgba(0, 4, 10, 0.36);
-}
-
-/* One slow lap. Long enough that it reads as the scene's light moving across
-   the capsule rather than as a loading indicator, which is the line between
-   this feeling expensive and feeling busy. */
-.hero-nav::before {
-  z-index: 0;
-  animation: edge-travel 7s linear infinite;
-}
-
-/* Soft bloom that follows the same arc one step outside the ring, so the
-   highlight looks like it is lighting the air around the edge instead of being
-   a hairline switching on. Thicker, dimmer, and blurred by being spread over
-   3px rather than by a filter — a filter on geometry that changes every frame
-   is the one thing this section cannot afford. */
-.hero-nav::after {
-  content: "";
-  position: absolute;
-  z-index: 0;
-  inset: -2px;
-  padding: 3px;
-  border-radius: inherit;
-  /* A little wider than the core arc above, so the bloom leads and trails the
-     highlight instead of ending exactly where it does. */
-  background: conic-gradient(
-    from var(--edge-angle),
-    transparent 0deg,
-    transparent 48deg,
-    rgba(66, 187, 241, 0.07) 68deg,
-    rgba(110, 206, 244, 0.28) 90deg,
-    rgba(66, 187, 241, 0.07) 112deg,
-    transparent 132deg,
-    transparent 360deg
-  );
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  animation: edge-travel 7s linear infinite;
-  pointer-events: none;
-}
-
-@keyframes edge-travel {
-  to {
-    --edge-angle: 360deg;
-  }
-}
-
-.hero-nav a {
-  position: relative;
-  /* Above both rings, which paint at z-index 0 on the capsule. */
-  z-index: 1;
-  font-family: var(--hero-font);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.96);
-  text-decoration: none;
-  padding: 8px 12px;
-  transition: color 0.26s ease;
-}
-
-/* Hairline that wipes in from the left — the interaction is the line
-   drawing, not a filled chip appearing under the cursor. Held clear of the
-   pill's own inner edge so the two rules never read as one thick border. */
-.hero-nav a::after {
-  content: "";
-  position: absolute;
-  left: 11px;
-  right: 11px;
-  bottom: 5px;
-  height: 1px;
-  background: rgba(160, 216, 236, 0.6);
-  box-shadow: 0 0 8px rgba(140, 210, 236, 0.5);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.34s var(--hero-ease);
-}
-
-.hero-nav a:hover,
-.hero-nav a:focus-visible {
-  color: #ffffff;
-  outline: none;
-}
-
-.hero-nav a:hover::after,
-.hero-nav a:focus-visible::after {
-  transform: scaleX(1);
-}
-
-.hero-auth {
-  display: flex;
-  align-items: center;
-  gap: clamp(8px, 1.2vw, 18px);
-}
-
-.hero-login {
-  position: relative;
-  font-family: var(--hero-font);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  /* Held a clear step under the nav's white: it is the secondary of the two
-     auth actions, and in the reference it is the one piece of header type that
-     is not at full value. */
-  color: rgba(198, 214, 222, 0.82);
-  text-decoration: none;
-  padding: 8px 4px;
-  transition: color 0.26s ease;
-}
-
-/* The same drawn hairline the nav links use. Login was the one interactive
-   piece of type in the header with no response of its own beyond a colour
-   shift, which made it read as a label rather than as a link. */
-.hero-login::after {
-  content: "";
-  position: absolute;
-  left: 4px;
-  right: 4px;
-  bottom: 2px;
-  height: 1px;
-  background: rgba(160, 216, 236, 0.6);
-  box-shadow: 0 0 8px rgba(140, 210, 236, 0.5);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.34s var(--hero-ease);
-}
-
-.hero-login:hover,
-.hero-login:focus-visible {
-  color: rgba(238, 248, 252, 0.96);
-  outline: none;
-}
-
-.hero-login:hover::after,
-.hero-login:focus-visible::after {
-  transform: scaleX(1);
-}
-
-/* One hairline capsule, no fill and no glass. The two-layer gradient border
-   plus a backdrop blur was building a lit object in the darkest corner of the
-   frame; a single 1px rule states "button" perfectly well, and the header now
-   has exactly one bordered shape in it — this one. */
-.hero-signup {
-  position: relative;
-  isolation: isolate;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--hero-font);
-  font-size: 11.5px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.94);
-  text-decoration: none;
-  padding: 10px 18px;
-  border-radius: 999px;
-  border: 1px solid rgba(112, 198, 238, 0.4);
-  background: rgba(6, 16, 24, 0.24);
-  /* Border glow plus a grounding shadow: the edge is lit from both sides — a
-     hairline of light just inside it and a soft cyan bloom spilling outward —
-     and the dark drop underneath is what lifts the capsule off the scene
-     instead of leaving it pasted flat onto it. Same recipe as the HUD panels'
-     aura, so the button reads as part of the same lit system. */
-  box-shadow:
-    inset 0 0 0 1px rgba(176, 226, 246, 0.06),
-    inset 0 1px rgba(214, 244, 255, 0.16),
-    0 0 12px rgba(104, 194, 230, 0.16),
-    0 0 26px rgba(74, 168, 208, 0.1),
-    0 6px 18px rgba(0, 5, 12, 0.4);
-  transition: border-color 0.3s ease, color 0.3s ease,
-    background-color 0.3s ease, box-shadow 0.3s ease, transform 0.28s var(--hero-ease);
-}
-
-/* The travelling edge light runs on hover only. On the nav capsule it is
-   ambient; here it is the button's answer to being pointed at, so it starts
-   from wherever the sweep happens to be and laps faster. */
-.hero-signup::before {
-  z-index: 0;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.hero-signup > * {
-  position: relative;
-  z-index: 1;
-}
-
-.hero-signup svg {
-  width: 13px;
-  height: 13px;
-  transition: transform 0.3s var(--hero-ease);
-}
-
-.hero-signup:hover,
-.hero-signup:focus-visible {
-  color: rgba(244, 252, 255, 1);
-  border-color: rgba(190, 232, 248, 0.55);
-  background: rgba(12, 28, 38, 0.34);
-  /* Lifted a hair on hover, with the drop growing to match — the movement and
-     the shadow have to agree or the button reads as sliding rather than
-     rising. */
-  transform: translateY(-1px);
-  box-shadow:
-    inset 0 0 0 1px rgba(190, 234, 250, 0.1),
-    inset 0 1px rgba(214, 244, 255, 0.22),
-    0 0 18px rgba(120, 208, 240, 0.3),
-    0 0 40px rgba(84, 178, 216, 0.18),
-    0 10px 24px rgba(0, 5, 12, 0.46);
-  outline: none;
-}
-
-.hero-signup:hover::before,
-.hero-signup:focus-visible::before {
-  opacity: 1;
-  animation: edge-travel 2.6s linear infinite;
-}
-
-.hero-signup:hover svg,
-.hero-signup:focus-visible svg {
-  transform: translateX(3px);
-}
-
-.hero-signup:active {
-  background: rgba(6, 16, 24, 0.4);
-  transform: translateY(0);
-  box-shadow:
-    inset 0 0 0 1px rgba(190, 234, 250, 0.1),
-    inset 0 1px rgba(214, 244, 255, 0.16),
-    0 0 14px rgba(120, 208, 240, 0.22),
-    0 3px 10px rgba(0, 5, 12, 0.4);
+  --hero-accent: var(--accent-1);
+  --hero-ink: var(--bg-dark);
 }
 
 /* Keyboard focus needs a mark of its own. Every :focus-visible rule in this
@@ -1695,7 +1340,7 @@
    purpose: that gives it enough specificity to land over the `outline: none`
    declarations further down the file without having to unpick each one. */
 .hero-section a:focus-visible {
-  outline: 2px solid rgba(126, 214, 248, 0.78);
+  outline: 2px solid rgba(var(--accent-1-rgb), 0.78);
   outline-offset: 3px;
 }
 
@@ -1738,8 +1383,8 @@
   /* Halved. With the type this much calmer, the old 0.22 blob was visible as
      a blue wash *around* the copy rather than as depth behind it. */
   background:
-    radial-gradient(42% 40% at 30% 34%, rgba(60, 140, 186, 0.12), transparent 70%),
-    radial-gradient(46% 42% at 58% 70%, rgba(90, 178, 214, 0.07), transparent 72%);
+    radial-gradient(42% 40% at 30% 34%, rgba(var(--accent-1-rgb), 0.12), transparent 70%),
+    radial-gradient(46% 42% at 58% 70%, rgba(var(--accent-1-rgb), 0.07), transparent 72%);
   filter: blur(26px);
   pointer-events: none;
   animation: hero-glow-drift 12s ease-in-out infinite;
@@ -1784,7 +1429,7 @@
   color: #ffffff;
   /* Contact shadow only — enough to keep the white off the lighter patches
      of mist without putting a halo around the type. */
-  text-shadow: 0 2px 26px rgba(0, 6, 12, 0.62);
+  text-shadow: 0 2px 26px rgba(var(--bg-dark-rgb), 0.62);
 }
 
 .hero-title-line {
@@ -1846,24 +1491,24 @@
      cool halo (and the accent words brighten — see .hero-copy-lit .hero-see
      above). Same gesture as before, carried by light instead of by opacity. */
   text-shadow:
-    0 1px 22px rgba(0, 6, 12, 0.5),
-    0 0 12px rgba(168, 226, 248, 0.34),
-    0 0 34px rgba(130, 204, 240, 0.3);
+    0 1px 22px rgba(var(--bg-dark-rgb), 0.5),
+    0 0 12px rgba(var(--ink-on-dark-rgb), 0.34),
+    0 0 34px rgba(var(--accent-1-rgb), 0.3);
   transition: opacity 0.42s ease;
   -webkit-mask-image: radial-gradient(
     circle 175px at var(--sx, -600px) var(--sy, -600px),
     #000 0%,
     #000 22%,
-    rgba(0, 0, 0, 0.72) 46%,
-    rgba(0, 0, 0, 0.28) 72%,
+    rgba(var(--bg-dark-rgb), 0.72) 46%,
+    rgba(var(--bg-dark-rgb), 0.28) 72%,
     transparent 100%
   );
   mask-image: radial-gradient(
     circle 175px at var(--sx, -600px) var(--sy, -600px),
     #000 0%,
     #000 22%,
-    rgba(0, 0, 0, 0.72) 46%,
-    rgba(0, 0, 0, 0.28) 72%,
+    rgba(var(--bg-dark-rgb), 0.72) 46%,
+    rgba(var(--bg-dark-rgb), 0.28) 72%,
     transparent 100%
   );
 }
@@ -1902,7 +1547,7 @@
    value (see .hero-copy-lit). */
 .hero-copy-lit .hero-see,
 .hero-copy-lit .hero-title-accent {
-  color: #8fdcff;
+  color: var(--accent-1);
 }
 
 /* Accent rule between the headline and the support copy: a short gradient
@@ -1918,9 +1563,9 @@
   border-radius: 2px;
   background: linear-gradient(
     90deg,
-    rgba(118, 220, 250, 0.95) 0%,
-    rgba(66, 187, 241, 0.62) 34%,
-    rgba(66, 187, 241, 0) 100%
+    rgba(var(--accent-1-rgb), 0.95) 0%,
+    rgba(var(--accent-1-rgb), 0.62) 34%,
+    rgba(var(--accent-1-rgb), 0) 100%
   );
   transform: scaleX(0);
   transform-origin: left;
@@ -1954,8 +1599,8 @@
      point — but at readable value now. The old 0.6 alpha was tuned against a
      headline that was itself dimmed; against white type it left the support
      copy looking switched off rather than secondary. */
-  color: rgba(212, 226, 235, 0.85);
-  text-shadow: 0 1px 18px rgba(0, 6, 12, 0.55);
+  color: rgba(var(--ink-on-dark-rgb), 0.85);
+  text-shadow: 0 1px 18px rgba(var(--bg-dark-rgb), 0.55);
 }
 
 /* Deliberately a different reveal from the headline's. The headline is lit by
@@ -1996,20 +1641,20 @@
   border-radius: 999px;
   text-decoration: none;
   overflow: hidden;
-  border: 1px solid rgba(112, 198, 238, 0.46);
-  background: rgba(6, 16, 24, 0.26);
+  border: 1px solid rgba(var(--accent-1-rgb), 0.46);
+  background: rgba(var(--bg-dark-rgb), 0.26);
   /* Same lit edge as the header button, one step stronger — this is the
      primary action, so its border carries a little more light at rest and
      opens up considerably on hover. The dark drop at the end is doing the
      premium work: it is what makes the capsule sit *above* the scene with air
      under it rather than looking cut into the artwork. */
   box-shadow:
-    inset 0 0 0 1px rgba(176, 226, 246, 0.07),
-    inset 0 1px rgba(214, 244, 255, 0.18),
-    inset 0 -1px rgba(66, 187, 241, 0.1),
-    0 0 14px rgba(104, 194, 230, 0.2),
-    0 0 34px rgba(74, 168, 208, 0.12),
-    0 12px 30px rgba(0, 5, 12, 0.44);
+    inset 0 0 0 1px rgba(var(--ink-on-dark-rgb), 0.07),
+    inset 0 1px rgba(var(--ink-on-dark-rgb), 0.18),
+    inset 0 -1px rgba(var(--accent-1-rgb), 0.1),
+    0 0 14px rgba(var(--accent-1-rgb), 0.2),
+    0 0 34px rgba(var(--accent-1-rgb), 0.12),
+    0 12px 30px rgba(var(--bg-dark-rgb), 0.44);
   transition: border-color 0.34s ease, background-color 0.34s ease,
     box-shadow 0.34s ease;
   will-change: transform;
@@ -2047,8 +1692,8 @@
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(138, 216, 240, 0.03) 0%,
-    rgba(138, 216, 240, 0.12) 100%
+    rgba(var(--accent-1-rgb), 0.03) 0%,
+    rgba(var(--accent-1-rgb), 0.12) 100%
   );
   transform: translateY(101%);
   transition: transform 0.46s var(--hero-ease);
@@ -2077,14 +1722,14 @@
 
 .hero-cta:hover,
 .hero-cta:focus-visible {
-  border-color: rgba(198, 238, 252, 0.62);
+  border-color: rgba(var(--ink-on-dark-rgb), 0.62);
   box-shadow:
-    inset 0 0 0 1px rgba(196, 236, 252, 0.12),
-    inset 0 1px rgba(222, 246, 255, 0.26),
-    inset 0 -1px rgba(66, 187, 241, 0.16),
-    0 0 22px rgba(126, 210, 242, 0.34),
-    0 0 52px rgba(84, 178, 216, 0.2),
-    0 16px 38px rgba(0, 5, 12, 0.5);
+    inset 0 0 0 1px rgba(var(--ink-on-dark-rgb), 0.12),
+    inset 0 1px rgba(var(--ink-on-dark-rgb), 0.26),
+    inset 0 -1px rgba(var(--accent-1-rgb), 0.16),
+    0 0 22px rgba(var(--accent-1-rgb), 0.34),
+    0 0 52px rgba(var(--accent-1-rgb), 0.2),
+    0 16px 38px rgba(var(--bg-dark-rgb), 0.5);
 }
 
 .hero-cta:hover::before,
@@ -2094,7 +1739,7 @@
 
 .hero-cta:hover .hero-cta-inner,
 .hero-cta:focus-visible .hero-cta-inner {
-  color: rgba(246, 253, 255, 1);
+  color: rgba(var(--ink-on-dark-rgb), 1);
 }
 
 .hero-cta:active .hero-cta-inner {
@@ -2139,7 +1784,7 @@
   gap: 12px;
   text-decoration: none;
   pointer-events: auto;
-  color: rgba(236, 245, 250, 0.88);
+  color: rgba(var(--ink-on-dark-rgb), 0.88);
   transition: color 0.3s ease;
 }
 
@@ -2155,7 +1800,7 @@
   text-indent: 0.3em;
   text-transform: uppercase;
   color: inherit;
-  text-shadow: 0 1px 14px rgba(0, 6, 12, 0.72);
+  text-shadow: 0 1px 14px rgba(var(--bg-dark-rgb), 0.72);
 }
 
 /* Hairline capsule the arrow travels inside — same border language as the CTA
@@ -2167,10 +1812,10 @@
   width: 23px;
   height: 35px;
   border-radius: 999px;
-  border: 1px solid rgba(140, 208, 234, 0.32);
+  border: 1px solid rgba(var(--accent-1-rgb), 0.32);
   box-shadow:
-    inset 0 0 0 1px rgba(176, 226, 246, 0.05),
-    0 0 14px rgba(90, 180, 220, 0.14);
+    inset 0 0 0 1px rgba(var(--ink-on-dark-rgb), 0.05),
+    0 0 14px rgba(var(--accent-1-rgb), 0.14);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -2202,10 +1847,10 @@
 
 .hero-scroll-cue:hover .hero-scroll-well,
 .hero-scroll-cue:focus-visible .hero-scroll-well {
-  border-color: rgba(112, 198, 238, 0.6);
+  border-color: rgba(var(--accent-1-rgb), 0.6);
   box-shadow:
-    inset 0 0 0 1px rgba(196, 236, 252, 0.1),
-    0 0 20px rgba(112, 198, 238, 0.28);
+    inset 0 0 0 1px rgba(var(--ink-on-dark-rgb), 0.1),
+    0 0 20px rgba(var(--accent-1-rgb), 0.28);
 }
 
 /* Tablet / narrow desktop: pull the copy back a touch. */
@@ -2342,8 +1987,8 @@
 
   .hero-atmosphere {
     background:
-      linear-gradient(180deg, rgba(3, 7, 16, 0.62) 0%, rgba(3, 7, 16, 0.16) 24%, rgba(3, 7, 16, 0.56) 56%, rgba(3, 7, 16, 0.98) 82%),
-      linear-gradient(90deg, rgba(3, 7, 16, 0.5), rgba(3, 7, 16, 0.12));
+      linear-gradient(180deg, rgba(var(--bg-dark-rgb), 0.62) 0%, rgba(var(--bg-dark-rgb), 0.16) 24%, rgba(var(--bg-dark-rgb), 0.56) 56%, rgba(var(--bg-dark-rgb), 0.98) 82%),
+      linear-gradient(90deg, rgba(var(--bg-dark-rgb), 0.5), rgba(var(--bg-dark-rgb), 0.12));
   }
 }
 
@@ -2361,7 +2006,7 @@
    .features-stage, so none of those four surfaces can show an edge against
    the next. It's hero-bg's own sampled corner colour (rgb(0,1,6)). */
 .hero-section {
-  background: #000106;
+  background: var(--bg-dark);
 }
 
 /* Feathers the bottom of the frame into that colour. The falloff starts
@@ -2382,14 +2027,14 @@
   pointer-events: none;
   background: linear-gradient(
     180deg,
-    rgba(0, 1, 6, 0) 0%,
-    rgba(0, 1, 6, 0.06) 18%,
-    rgba(0, 1, 6, 0.2) 38%,
-    rgba(0, 1, 6, 0.44) 56%,
-    rgba(0, 1, 6, 0.7) 72%,
-    rgba(0, 1, 6, 0.9) 86%,
-    #000106 96%,
-    #000106 100%
+    rgba(var(--bg-dark-rgb), 0) 0%,
+    rgba(var(--bg-dark-rgb), 0.06) 18%,
+    rgba(var(--bg-dark-rgb), 0.2) 38%,
+    rgba(var(--bg-dark-rgb), 0.44) 56%,
+    rgba(var(--bg-dark-rgb), 0.7) 72%,
+    rgba(var(--bg-dark-rgb), 0.9) 86%,
+    var(--bg-dark) 96%,
+    var(--bg-dark) 100%
   );
 }
 
@@ -2402,7 +2047,7 @@
   z-index: 0;
   width: 100%;
   height: clamp(240px, 38svh, 440px);
-  background: #000106;
+  background: var(--bg-dark);
 }
 
 @media (max-width: 700px) {

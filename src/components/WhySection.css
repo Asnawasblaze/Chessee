@@ -43,31 +43,31 @@
   /* Local palette. Deliberately not a redefinition of the global tokens: the
      hero's HUD is tuned against those, so overriding them here would reach back
      up the page. */
-  --w-ink: #eef7fb;
-  /* Was #a6bdc9. The labels are set in a monospaced face at 12-15px with 0.18em
+  --w-ink: var(--ink-on-dark);
+  /* Was var(--accent-1). The labels are set in a monospaced face at 12-15px with 0.18em
      tracking over a lit tunnel, which is the least legible combination on the
      page — at that size and spacing the old tone measured under 4.5:1 against
      the scrim and read as disabled rather than quiet. */
-  --w-ink-soft: #cfe2ec;
-  --w-ink-dim: rgba(196, 216, 226, 0.78);
+  --w-ink-soft: var(--ink-on-dark);
+  --w-ink-dim: rgba(var(--ink-on-dark-rgb), 0.78);
   /* Reading ink for the beats' body copy. Level with the headline ink rather
      than a step under it: these four paragraphs *are* the chapter, they are the
      only long-form copy the reader is asked to take in while the frame is
      moving, and holding them below the display type to preserve a hierarchy the
      type sizes already state cost contrast the copy could not spare. */
-  --w-read: #f2f9fc;
+  --w-read: var(--ink-on-dark);
   /* One curve for this chapter's CSS-side motion, matching the Premium
      personality the scrubbed timelines are tuned at: decelerating, no
      overshoot. */
   --w-ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --w-line: rgba(155, 216, 237, 0.16);
-  --w-accent: #9bd8ed;
+  --w-line: rgba(var(--accent-1-rgb), 0.16);
+  --w-accent: var(--accent-1);
   --w-gutter: clamp(24px, 6vw, 96px);
 
   position: relative;
   /* Same deep tone as the hero fill, .hero-tail and .features-stage, so none of
      those surfaces can show an edge against the next. */
-  background: #000106;
+  background: var(--bg-dark);
   /* Straddles the join with the feature story above: both sections' heights land
      on fractional device pixels, and the sub-pixel gap between them rendered as
      a dark hairline across an otherwise seamless handover. The dusk band's first
@@ -97,8 +97,8 @@
 /* Dusk — the light chapter above resolves into this one's near-black       */
 /* ---------------------------------------------------------------------- */
 
-/* The feature story ends on --f-sky-edge (#d7e6ef) and this chapter runs on
-   #000106, so the join is a ramp, not an edge. The first stop is that exact
+/* The feature story ends on --f-sky-edge (var(--ink-on-dark)) and this chapter runs on
+   var(--bg-dark), so the join is a ramp, not an edge. The first stop is that exact
    paper tone and the last is the stage's exact base, which is what keeps both
    boundaries invisible; the stops between follow the page's own blue-teal ink
    rather than desaturating through grey, so it reads as the light going out of
@@ -115,7 +115,7 @@
   width: 100%;
   height: clamp(300px, 52svh, 620px);
   overflow: hidden;
-  background: #000106;
+  background: var(--bg-dark);
 }
 
 /* How far the night has fallen, 0-1. Registered so it can be interpolated at
@@ -137,14 +137,14 @@
   inset: 0;
   background: linear-gradient(
     180deg,
-    #d7e6ef 0%,
-    #b7cddb calc(15% - var(--why-fall) * 6%),
-    #8aa8ba calc(30% - var(--why-fall) * 11%),
-    #5b7889 calc(46% - var(--why-fall) * 16%),
-    #334b58 calc(62% - var(--why-fall) * 20%),
-    #16262f calc(77% - var(--why-fall) * 22%),
-    #06101a calc(90% - var(--why-fall) * 20%),
-    #000106 100%
+    var(--ink-on-dark) 0%,
+    var(--accent-1) calc(15% - var(--why-fall) * 6%),
+    var(--accent-1) calc(30% - var(--why-fall) * 11%),
+    var(--accent-1) calc(46% - var(--why-fall) * 16%),
+    var(--bg-dark-2) calc(62% - var(--why-fall) * 20%),
+    var(--bg-dark-2) calc(77% - var(--why-fall) * 22%),
+    var(--bg-dark) calc(90% - var(--why-fall) * 20%),
+    var(--bg-dark) 100%
   );
 }
 
@@ -161,10 +161,10 @@
   translate: -50% 0;
   background: radial-gradient(
     58% 100% at 50% 50%,
-    rgba(233, 244, 250, 0.7) 0%,
-    rgba(178, 214, 232, 0.34) 34%,
-    rgba(120, 172, 198, 0.12) 62%,
-    rgba(120, 172, 198, 0) 84%
+    rgba(var(--ink-on-dark-rgb), 0.7) 0%,
+    rgba(var(--ink-on-dark-rgb), 0.34) 34%,
+    rgba(var(--accent-1-rgb), 0.12) 62%,
+    rgba(var(--accent-1-rgb), 0) 84%
   );
   filter: blur(26px);
   will-change: transform, opacity;
@@ -172,22 +172,22 @@
 
 /* The sky arriving. Two dot fields at different scales so it doesn't read as a
    regular grid, masked out of the top third (there is still daylight there) and
-   off the bottom edge (that row has to stay exactly #000106 for the stage). */
+   off the bottom edge (that row has to stay exactly var(--bg-dark) for the stage). */
 .why-dusk-stars {
   position: absolute;
   inset: 0;
   opacity: 0;
   background-image: radial-gradient(
-      rgba(228, 245, 253, 0.55) 1px,
+      rgba(var(--ink-on-dark-rgb), 0.55) 1px,
       transparent 1.4px
     ),
-    radial-gradient(rgba(174, 214, 234, 0.4) 1px, transparent 1.6px);
+    radial-gradient(rgba(var(--accent-1-rgb), 0.4) 1px, transparent 1.6px);
   background-size: 137px 119px, 79px 83px;
   background-position: 0 0, 41px 57px;
   mask-image: linear-gradient(
     180deg,
     transparent 24%,
-    rgba(0, 0, 0, 0.55) 52%,
+    rgba(var(--bg-dark-rgb), 0.55) 52%,
     #000 74%,
     transparent 96%
   );
@@ -206,7 +206,7 @@
   inset: 0;
   opacity: 0.55;
   background-image: radial-gradient(
-    rgba(120, 160, 180, 0.07) 1px,
+    rgba(var(--accent-1-rgb), 0.07) 1px,
     transparent 1px
   );
   background-size: 3px 3px;
@@ -235,7 +235,7 @@
   position: relative;
   height: 100svh;
   overflow: hidden;
-  background: #000106;
+  background: var(--bg-dark);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -280,8 +280,8 @@
     150% 142% at 50% 48%,
     #000 0%,
     #000 94%,
-    rgba(0, 0, 0, 0.86) 98%,
-    rgba(0, 0, 0, 0.62) 100%
+    rgba(var(--bg-dark-rgb), 0.86) 98%,
+    rgba(var(--bg-dark-rgb), 0.62) 100%
   );
 }
 
@@ -390,7 +390,7 @@
   --why-lens-r: clamp(150px, 26vmin, 340px);
   position: absolute;
   inset: 0;
-  background: #000106;
+  background: var(--bg-dark);
   -webkit-mask-image: radial-gradient(
     circle var(--why-lens-r) at var(--why-lens-x) var(--why-lens-y),
     rgb(0 0 0 / calc(1 - var(--why-lens-a))) 0%,
@@ -428,10 +428,10 @@
   translate: calc(-50% + var(--why-shaft-x)) 0;
   background: linear-gradient(
     180deg,
-    rgba(155, 216, 237, 0.16) 0%,
-    rgba(155, 216, 237, 0.09) 34%,
-    rgba(155, 216, 237, 0.04) 66%,
-    rgba(155, 216, 237, 0) 92%
+    rgba(var(--accent-1-rgb), 0.16) 0%,
+    rgba(var(--accent-1-rgb), 0.09) 34%,
+    rgba(var(--accent-1-rgb), 0.04) 66%,
+    rgba(var(--accent-1-rgb), 0) 92%
   );
   /* Reaches fully transparent well inside its own box. `filter` is applied
      before `mask`, so a blur cannot soften the mask's own cut-off — if the
@@ -441,7 +441,7 @@
     46% 104% at 50% 0%,
     #000 0%,
     #000 34%,
-    rgba(0, 0, 0, 0.3) 64%,
+    rgba(var(--bg-dark-rgb), 0.3) 64%,
     transparent 88%
   );
   filter: blur(14px);
@@ -461,8 +461,8 @@
   height: 68%;
   background: radial-gradient(
     circle at 50% 50%,
-    rgba(35, 96, 124, 0.5),
-    rgba(35, 96, 124, 0) 70%
+    rgba(var(--bg-dark-2-rgb), 0.5),
+    rgba(var(--bg-dark-2-rgb), 0) 70%
   );
   animation: why-drift-a 38s ease-in-out infinite alternate;
 }
@@ -474,8 +474,8 @@
   height: 64%;
   background: radial-gradient(
     circle at 50% 50%,
-    rgba(20, 62, 92, 0.55),
-    rgba(20, 62, 92, 0) 72%
+    rgba(var(--bg-dark-2-rgb), 0.55),
+    rgba(var(--bg-dark-2-rgb), 0) 72%
   );
   animation: why-drift-b 52s ease-in-out infinite alternate;
 }
@@ -521,15 +521,15 @@
   transform-origin: 50% 100%;
   background-image: linear-gradient(
       90deg,
-      rgba(155, 216, 237, 0.24) 1px,
+      rgba(var(--accent-1-rgb), 0.24) 1px,
       transparent 1px
     ),
-    linear-gradient(180deg, rgba(155, 216, 237, 0.18) 1px, transparent 1px);
+    linear-gradient(180deg, rgba(var(--accent-1-rgb), 0.18) 1px, transparent 1px);
   background-size: 12.5% 84px;
   mask-image: linear-gradient(
     180deg,
     transparent 0%,
-    rgba(0, 0, 0, 0.4) 26%,
+    rgba(var(--bg-dark-rgb), 0.4) 26%,
     #000 74%
   );
   will-change: transform;
@@ -547,9 +547,9 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(155, 216, 237, 0.22) 30%,
-    rgba(190, 234, 248, 0.4) 50%,
-    rgba(155, 216, 237, 0.22) 70%,
+    rgba(var(--accent-1-rgb), 0.22) 30%,
+    rgba(var(--ink-on-dark-rgb), 0.4) 50%,
+    rgba(var(--accent-1-rgb), 0.22) 70%,
     transparent
   );
 }
@@ -574,8 +574,8 @@
   pointer-events: none;
 }
 
-/* Top edge. The dusk band above resolves to a flat #000106, but this stage opens
-   with the overhead shaft at rgba(155, 216, 237, 0.16) and both drifting glows
+/* Top edge. The dusk band above resolves to a flat var(--bg-dark), but this stage opens
+   with the overhead shaft at rgba(var(--accent-1-rgb), 0.16) and both drifting glows
    already live along its first row — a ~8 luma step, too small to look like art
    direction and exactly big enough to read as a rule drawn across the page. */
 .why-hem-top {
@@ -584,9 +584,9 @@
   height: clamp(64px, 11svh, 120px);
   background: linear-gradient(
     180deg,
-    #000106 0%,
-    rgba(0, 1, 6, 0.7) 46%,
-    rgba(0, 1, 6, 0) 100%
+    var(--bg-dark) 0%,
+    rgba(var(--bg-dark-rgb), 0.7) 46%,
+    rgba(var(--bg-dark-rgb), 0) 100%
   );
 }
 
@@ -644,10 +644,10 @@
   height: 34%;
   background: linear-gradient(
     180deg,
-    rgba(0, 1, 6, 0) 0%,
-    rgba(0, 1, 6, 0.3) 38%,
-    rgba(0, 1, 6, 0.66) 68%,
-    rgba(0, 1, 6, 0.92) 100%
+    rgba(var(--bg-dark-rgb), 0) 0%,
+    rgba(var(--bg-dark-rgb), 0.3) 38%,
+    rgba(var(--bg-dark-rgb), 0.66) 68%,
+    rgba(var(--bg-dark-rgb), 0.92) 100%
   );
 }
 
@@ -668,7 +668,7 @@
   inset: 0;
   opacity: 0.16;
   background-image: radial-gradient(
-    rgba(180, 218, 234, 0.05) 1px,
+    rgba(var(--ink-on-dark-rgb), 0.05) 1px,
     transparent 1px
   );
   background-size: 3px 3px;
@@ -692,8 +692,8 @@
     132% 104% at 50% 46%,
     transparent 0%,
     transparent 80%,
-    rgba(0, 1, 6, 0.18) 92%,
-    rgba(0, 1, 6, 0.44) 100%
+    rgba(var(--bg-dark-rgb), 0.18) 92%,
+    rgba(var(--bg-dark-rgb), 0.44) 100%
   );
 }
 
@@ -918,9 +918,9 @@
     180deg,
     #ffffff 14%,
     #fbfdff 34%,
-    #f0f6fa 58%,
-    #dce9f0 78%,
-    #cad9e2 100%
+    var(--ink-on-dark) 58%,
+    var(--ink-on-dark) 78%,
+    var(--ink-on-dark) 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
@@ -952,15 +952,15 @@
   -webkit-mask-image: radial-gradient(
     circle var(--why-sheen-r) at var(--why-lens-x) var(--why-lens-y),
     #000 0%,
-    rgba(0, 0, 0, 0.62) 42%,
-    rgba(0, 0, 0, 0.16) 74%,
+    rgba(var(--bg-dark-rgb), 0.62) 42%,
+    rgba(var(--bg-dark-rgb), 0.16) 74%,
     transparent 100%
   );
   mask-image: radial-gradient(
     circle var(--why-sheen-r) at var(--why-lens-x) var(--why-lens-y),
     #000 0%,
-    rgba(0, 0, 0, 0.62) 42%,
-    rgba(0, 0, 0, 0.16) 74%,
+    rgba(var(--bg-dark-rgb), 0.62) 42%,
+    rgba(var(--bg-dark-rgb), 0.16) 74%,
     transparent 100%
   );
 }
@@ -972,8 +972,8 @@
   background-image: linear-gradient(
     180deg,
     #ffffff 0%,
-    #f4fcff 46%,
-    #cdeaf8 100%
+    var(--ink-on-dark) 46%,
+    var(--ink-on-dark) 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
@@ -998,7 +998,7 @@
    instead of continuing through the figure. */
 .why-mark-line i {
   color: transparent;
-  -webkit-text-stroke: 1.6px rgba(233, 247, 253, 0.94);
+  -webkit-text-stroke: 1.6px rgba(var(--ink-on-dark-rgb), 0.94);
 }
 
 /* A little bloom on the outline, and it goes on the layer rather than on the mark
@@ -1018,8 +1018,8 @@
    everywhere the two layers overlap; the second pass only reads where the fill
    is absent, which is where the pawn is. */
 .why-title-line {
-  filter: drop-shadow(0 0 2px rgba(214, 240, 250, 0.85))
-    drop-shadow(0 0 9px rgba(155, 216, 237, 0.55));
+  filter: drop-shadow(0 0 2px rgba(var(--ink-on-dark-rgb), 0.85))
+    drop-shadow(0 0 9px rgba(var(--accent-1-rgb), 0.55));
 }
 
 /* ── The mark on a narrow frame ──────────────────────────────────────────
@@ -1187,11 +1187,11 @@
   z-index: -1;
   background: radial-gradient(
     54% 58% at 50% 50%,
-    rgba(0, 1, 6, 0.8) 0%,
-    rgba(0, 1, 6, 0.66) 42%,
-    rgba(0, 1, 6, 0.34) 70%,
-    rgba(0, 1, 6, 0.08) 88%,
-    rgba(0, 1, 6, 0) 100%
+    rgba(var(--bg-dark-rgb), 0.8) 0%,
+    rgba(var(--bg-dark-rgb), 0.66) 42%,
+    rgba(var(--bg-dark-rgb), 0.34) 70%,
+    rgba(var(--bg-dark-rgb), 0.08) 88%,
+    rgba(var(--bg-dark-rgb), 0) 100%
   );
 }
 
@@ -1212,9 +1212,9 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(155, 216, 237, 0.08) 12%,
-    rgba(155, 216, 237, 0.52) 50%,
-    rgba(155, 216, 237, 0.08) 88%,
+    rgba(var(--accent-1-rgb), 0.08) 12%,
+    rgba(var(--accent-1-rgb), 0.52) 50%,
+    rgba(var(--accent-1-rgb), 0.08) 88%,
     transparent
   );
 }
@@ -1253,7 +1253,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* The wash used to run out at #3f6c80, which is a mid slate over a #000106
+/* The wash used to run out at var(--accent-1), which is a mid slate over a var(--bg-dark)
    stage — the bottom third of every numeral was reading as a smudge rather than
    as type, so the count that is supposed to be legible at a glance while falling
    was the least legible thing in the block. The ramp now stays inside the
@@ -1263,11 +1263,11 @@
 .why-beat-num i {
   display: inline-block;
   font-style: normal;
-  background: linear-gradient(172deg, #f4fbfe 2%, #cbe6f2 52%, #93bfd3 100%);
+  background: linear-gradient(172deg, var(--ink-on-dark) 2%, var(--ink-on-dark) 52%, var(--accent-1) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 2px 10px rgba(0, 1, 6, 0.85));
+  filter: drop-shadow(0 2px 10px rgba(var(--bg-dark-rgb), 0.85));
   will-change: transform;
 }
 
@@ -1296,7 +1296,7 @@
   letter-spacing: var(--w-track);
   text-transform: uppercase;
   color: var(--w-ink-soft);
-  text-shadow: 0 1px 2px rgba(0, 1, 6, 0.85);
+  text-shadow: 0 1px 2px rgba(var(--bg-dark-rgb), 0.85);
 }
 
 .why-beat-dash {
@@ -1304,7 +1304,7 @@
   width: clamp(28px, 4.4vw, 56px);
   height: 1px;
   transform-origin: left;
-  background: linear-gradient(90deg, rgba(155, 216, 237, 0.5), transparent);
+  background: linear-gradient(90deg, rgba(var(--accent-1-rgb), 0.5), transparent);
 }
 
 .why-beat-type {
@@ -1340,7 +1340,7 @@
   width: 2px;
   height: 1.2em;
   background: var(--w-accent);
-  box-shadow: 0 0 8px rgba(155, 216, 237, 0.45);
+  box-shadow: 0 0 8px rgba(var(--accent-1-rgb), 0.45);
   animation: why-caret 1.05s steps(1, end) infinite;
 }
 
@@ -1351,7 +1351,7 @@
   }
   48%,
   100% {
-    background-color: rgba(155, 216, 237, 0.08);
+    background-color: rgba(var(--accent-1-rgb), 0.08);
   }
 }
 
@@ -1413,7 +1413,7 @@
      where the tunnel's cables are still bright — and a bright filament crossing
      a stem is what makes a word take two passes to read. Blur radius under a
      pixel and a half so it densifies the edge instead of smudging it. */
-  text-shadow: 0 1px 2px rgba(0, 1, 6, 0.9), 0 0 12px rgba(0, 1, 6, 0.7);
+  text-shadow: 0 1px 2px rgba(var(--bg-dark-rgb), 0.9), 0 0 12px rgba(var(--bg-dark-rgb), 0.7);
   text-wrap: pretty;
   will-change: transform, opacity;
 }
@@ -1483,7 +1483,7 @@
 .why-tword i {
   display: inline-block;
   font-style: normal;
-  background: linear-gradient(176deg, #ffffff 10%, #f4fbfe 58%, #dceff8 100%);
+  background: linear-gradient(176deg, #ffffff 10%, var(--ink-on-dark) 58%, var(--ink-on-dark) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -1491,7 +1491,7 @@
      the paragraph so it survives the word-by-word reveal — a filter on the
      paragraph would flatten all 20 boxes into one layer and the transforms
      GSAP runs on them would then be composited through it. */
-  filter: drop-shadow(0 2px 10px rgba(0, 1, 6, 0.9));
+  filter: drop-shadow(0 2px 10px rgba(var(--bg-dark-rgb), 0.9));
   will-change: transform;
 }
 
@@ -1546,12 +1546,12 @@
     display: block;
     background: linear-gradient(
       90deg,
-      rgba(0, 1, 6, 0.9) 0%,
-      rgba(0, 1, 6, 0.86) 14%,
-      rgba(0, 1, 6, 0.7) 30%,
-      rgba(0, 1, 6, 0.4) 46%,
-      rgba(0, 1, 6, 0.14) 60%,
-      rgba(0, 1, 6, 0) 72%
+      rgba(var(--bg-dark-rgb), 0.9) 0%,
+      rgba(var(--bg-dark-rgb), 0.86) 14%,
+      rgba(var(--bg-dark-rgb), 0.7) 30%,
+      rgba(var(--bg-dark-rgb), 0.4) 46%,
+      rgba(var(--bg-dark-rgb), 0.14) 60%,
+      rgba(var(--bg-dark-rgb), 0) 72%
     );
   }
 
@@ -1583,9 +1583,9 @@
     transform-origin: left;
     background: linear-gradient(
       90deg,
-      rgba(155, 216, 237, 0.6) 0%,
-      rgba(155, 216, 237, 0.34) 44%,
-      rgba(155, 216, 237, 0.08) 78%,
+      rgba(var(--accent-1-rgb), 0.6) 0%,
+      rgba(var(--accent-1-rgb), 0.34) 44%,
+      rgba(var(--accent-1-rgb), 0.08) 78%,
       transparent 100%
     );
   }
@@ -1656,9 +1656,9 @@
   opacity: var(--think-alpha, 1);
   background: radial-gradient(
     closest-side,
-    rgba(168, 224, 243, 0.44) 0%,
-    rgba(120, 190, 214, 0.18) 46%,
-    rgba(120, 190, 214, 0) 80%
+    rgba(var(--ink-on-dark-rgb), 0.44) 0%,
+    rgba(var(--accent-1-rgb), 0.18) 46%,
+    rgba(var(--accent-1-rgb), 0) 80%
   );
   filter: blur(11px);
 }
@@ -1686,8 +1686,8 @@
   border-radius: 50%;
   background: radial-gradient(
     closest-side,
-    rgba(0, 1, 6, 0.72) 0%,
-    rgba(0, 1, 6, 0) 100%
+    rgba(var(--bg-dark-rgb), 0.72) 0%,
+    rgba(var(--bg-dark-rgb), 0) 100%
   );
   filter: blur(6px);
 }
@@ -1812,7 +1812,7 @@
 .why-rail-dot i {
   width: 12px;
   height: 1px;
-  background: rgba(155, 216, 237, 0.38);
+  background: rgba(var(--accent-1-rgb), 0.38);
   transition:
     width 380ms var(--w-ease),
     background-color 320ms var(--w-ease),
@@ -1821,7 +1821,7 @@
 
 .why-rail-dot:hover i {
   width: 18px;
-  background: rgba(155, 216, 237, 0.66);
+  background: rgba(var(--accent-1-rgb), 0.66);
 }
 
 .why-rail-dot:focus-visible {
@@ -1835,7 +1835,7 @@
 .why-rail-dot.is-current i {
   width: 22px;
   background: var(--w-accent);
-  box-shadow: 0 0 10px rgba(155, 216, 237, 0.5);
+  box-shadow: 0 0 10px rgba(var(--accent-1-rgb), 0.5);
 }
 
 /* Written by the timeline rather than by React — see syncRail in
@@ -1901,7 +1901,7 @@
   z-index: 8;
   opacity: 0;
   pointer-events: none;
-  background: #000106;
+  background: var(--bg-dark);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1919,7 +1919,7 @@
  * margin has the full account, and it has been tried twice. So the screen exists,
  * the reader scrolls through it, and the only open question is what is in it.
  *
- * Until now, nothing: a flat #000106 slab sliding up off a sky that has stars in
+ * Until now, nothing: a flat var(--bg-dark) slab sliding up off a sky that has stars in
  * it. That is a hard horizontal line travelling the whole height of the frame
  * with night above it and space below — precisely the seam SpaceField's
  * shared-component argument exists to prevent, and the reason the join read as
@@ -1975,10 +1975,10 @@
   inset: 0;
   background: linear-gradient(
     180deg,
-    #000106 0%,
-    #01030c calc(90% - var(--why-open) * 55%),
-    #020511 calc(96% - var(--why-open) * 38%),
-    #030716 calc(99% - var(--why-open) * 19%),
+    var(--bg-dark) 0%,
+    var(--bg-dark) calc(90% - var(--why-open) * 55%),
+    var(--bg-dark) calc(96% - var(--why-open) * 38%),
+    var(--bg-dark) calc(99% - var(--why-open) * 19%),
     var(--space-base) 100%
   );
 }
@@ -2049,9 +2049,9 @@
   opacity: 0;
   background: radial-gradient(
     58% 54% at 50% 50%,
-    rgba(38, 52, 132, 0.85) 0%,
-    rgba(22, 34, 92, 0.5) 30%,
-    rgba(10, 18, 54, 0.2) 58%,
+    rgba(var(--bg-dark-2-rgb), 0.85) 0%,
+    rgba(var(--bg-dark-2-rgb), 0.5) 30%,
+    rgba(var(--bg-dark-2-rgb), 0.2) 58%,
     transparent 80%
   );
   -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 34%);
@@ -2071,7 +2071,7 @@
   inset: 0;
   opacity: 0.5;
   background-image: radial-gradient(
-    rgba(120, 160, 180, 0.07) 1px,
+    rgba(var(--accent-1-rgb), 0.07) 1px,
     transparent 1px
   );
   background-size: 3px 3px;
@@ -2086,7 +2086,7 @@
 
 /* The chapter's run-out band is gone too, and predates all of this.
  *
- * It was a flat #000106 strip — 240-440px of it — whose stated job was to give
+ * It was a flat var(--bg-dark) strip — 240-440px of it — whose stated job was to give
  * the closing argument somewhere to breathe out into. Its real effect was to
  * add a third of a screen of nothing to a gap between two pinned stages that
  * was already too long.
@@ -2141,11 +2141,11 @@
     inset: -8% -12%;
     background: radial-gradient(
       62% 60% at 50% 50%,
-      rgba(0, 1, 6, 0.86) 0%,
-      rgba(0, 1, 6, 0.74) 44%,
-      rgba(0, 1, 6, 0.4) 72%,
-      rgba(0, 1, 6, 0.1) 90%,
-      rgba(0, 1, 6, 0) 100%
+      rgba(var(--bg-dark-rgb), 0.86) 0%,
+      rgba(var(--bg-dark-rgb), 0.74) 44%,
+      rgba(var(--bg-dark-rgb), 0.4) 72%,
+      rgba(var(--bg-dark-rgb), 0.1) 90%,
+      rgba(var(--bg-dark-rgb), 0) 100%
     );
   }
 
@@ -2263,7 +2263,7 @@
    is no screen of roll-off to compose, and the stage is a flowing column rather
    than a frame — a full-bleed layer over it would be a gradient the height of an
    article. The step at the join is covered from the other side instead: the
-   pricing chapter ramps its own first rows back to #000106 under exactly this
+   pricing chapter ramps its own first rows back to var(--bg-dark) under exactly this
    preference, and its stylesheet says so. */
 .why-section.is-static .why-threshold {
   display: none;

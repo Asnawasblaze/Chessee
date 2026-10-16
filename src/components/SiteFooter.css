@@ -3,22 +3,22 @@
 /* ---------------------------------------------------------------------- */
 
 /* Art direction: the darkest surface on the page. The FAQ hands over a flat
-   #000106 and the footer steps *below* it to a true black, which is the one
+   var(--bg-dark) and the footer steps *below* it to a true black, which is the one
    place a value change is useful — it reads as the page closing rather than as
    another chapter starting. Type drops a step in size and rises a step in
    letter-spacing: everything here is reference material, not reading. */
 
 .site-footer {
-  --f-ink: #e7f1f6;
-  --f-ink-soft: #9db2be;
-  --f-ink-dim: rgba(157, 178, 190, 0.58);
-  --f-line: rgba(155, 216, 237, 0.12);
-  --f-accent: #9bd8ed;
+  --f-ink: var(--ink-on-dark);
+  --f-ink-soft: var(--accent-1);
+  --f-ink-dim: rgba(var(--accent-1-rgb), 0.58);
+  --f-line: rgba(var(--accent-1-rgb), 0.12);
+  --f-accent: var(--accent-1);
   --f-gutter: clamp(24px, 6vw, 96px);
 
   position: relative;
   isolation: isolate;
-  background: #000004;
+  background: var(--bg-dark);
   border-top: 1px solid var(--f-line);
   overflow: hidden;
   color: var(--f-ink-soft);
@@ -45,8 +45,8 @@
   opacity: 0.3;
   background: radial-gradient(
     50% 50% at 50% 50%,
-    rgba(112, 182, 212, 0.1) 0%,
-    rgba(52, 108, 142, 0.04) 46%,
+    rgba(var(--accent-1-rgb), 0.1) 0%,
+    rgba(var(--accent-1-rgb), 0.04) 46%,
     transparent 100%
   );
 }
@@ -119,7 +119,7 @@
   font-size: 20px;
   line-height: 1;
   color: var(--f-accent);
-  background: rgba(155, 216, 237, 0.06);
+  background: rgba(var(--accent-1-rgb), 0.06);
 }
 
 .footer-wordmark {
@@ -147,7 +147,7 @@
   align-items: center;
   gap: 10px;
   padding: 13px 22px;
-  border: 1px solid rgba(155, 216, 237, 0.34);
+  border: 1px solid rgba(var(--accent-1-rgb), 0.34);
   border-radius: 999px;
   font-family: var(--label);
   font-size: 11.5px;
@@ -169,7 +169,7 @@
 
 .footer-cta:hover {
   border-color: var(--f-accent);
-  background: rgba(155, 216, 237, 0.12);
+  background: rgba(var(--accent-1-rgb), 0.12);
   color: var(--f-accent);
 }
 
@@ -244,7 +244,7 @@
 
 .footer-col a:hover {
   color: var(--f-ink);
-  background: rgba(155, 216, 237, 0.05);
+  background: rgba(var(--accent-1-rgb), 0.05);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -39,19 +39,19 @@
    an intentional mark, faint enough that a link label crossing it never has to
    compete. A step up while the pointer is somewhere in the section. */
 .the-text--rest {
-  stroke: rgba(155, 216, 237, 0.1);
+  stroke: rgba(var(--accent-1-rgb), 0.1);
   transition: stroke 0.5s ease;
 }
 
 .the-svg.is-lit .the-text--rest {
-  stroke: rgba(190, 226, 240, 0.17);
+  stroke: rgba(var(--ink-on-dark-rgb), 0.17);
 }
 
 /* Drawn once on reveal, then it just sits on top of the resting copy.
    Dash length is generous rather than measured — text has no reliable
    getTotalLength, and overshooting only costs a beat of still frames. */
 .the-text--draw {
-  stroke: rgba(231, 241, 246, 0.11);
+  stroke: rgba(var(--ink-on-dark-rgb), 0.11);
   stroke-dasharray: 1200;
   stroke-dashoffset: 1200;
 }

@@ -13,11 +13,11 @@
      section because the whole point is that four surfaces in two components
      cannot disagree about it.
 
-     Chosen so it is a clear step out of the page's near-black (#000106) —
+     Chosen so it is a clear step out of the page's near-black (var(--bg-dark)) —
      the reader has to register that they have arrived somewhere — while still
      being dark enough to set a particle headline and four cards of body copy
      against. */
-  --space-base: #04091a;
+  --space-base: var(--bg-dark);
 }
 
 .space-field {

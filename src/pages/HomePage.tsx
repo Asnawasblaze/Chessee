@@ -1,11 +1,23 @@
-import { Suspense, lazy, useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, type ReactNode } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollSmoother } from "gsap/ScrollSmoother";
 import { useGSAP } from "@gsap/react";
 import HeroSection from "../components/HeroSection";
 import FeaturesSection from "../components/FeaturesSection";
-import LoadingScreen from "../components/LoadingScreen";
+import StyleLab from "../components/StyleLab";
+import MarqueeRibbons from "../components/sections/MarqueeRibbons";
+import ModesSection from "../components/sections/ModesSection";
+import BotsSection from "../components/sections/BotsSection";
+import StatsSection from "../components/sections/StatsSection";
+import RoadmapSection from "../components/sections/RoadmapSection";
+import CoffeeSection from "../components/sections/CoffeeSection";
+import BigFooter from "../components/sections/BigFooter";
+import Intro from "../components/chrome/Intro";
+import NavBar from "../components/chrome/NavBar";
+import Cursor from "../components/chrome/Cursor";
+import ScrollRail from "../components/chrome/ScrollRail";
+import { SHOW_STYLE_LAB } from "../config/site";
 import EffectBoundary from "../components/EffectBoundary";
 import { installAnchorScroll } from "../components/anchorScroll";
 
@@ -29,11 +41,15 @@ const PricingSection = lazy(() => import("../components/PricingSection"));
    Neither pins or scrubs; the FAQ's accordion is the page's only piece of
    click-driven motion. */
 const FaqSection = lazy(() => import("../components/FaqSection"));
-const SiteFooter = lazy(() => import("../components/SiteFooter"));
+
+/* Pinned sections get re-parented by ScrollTrigger (it wraps them in a
+   pin-spacer), so React must never use one as an insertBefore reference when a
+   lazy sibling resolves. A stable wrapper per section is that reference. */
+function Slot({ children }: { children: ReactNode }) {
+  return <div style={{ display: "contents" }}>{children}</div>;
+}
 
 export default function HomePage() {
-  const [loading, setLoading] = useState(true);
-
   /* ── Smoothed scrolling ────────────────────────────────────────────────
      Every chapter below is a pinned, scrubbed ScrollTrigger timeline, and on
      the native scroller those two things run on different threads: the browser
@@ -100,9 +116,11 @@ export default function HomePage() {
 
   return (
     <>
-      {loading ? (
-        <LoadingScreen onDone={() => setLoading(false)} />
-      ) : null}
+      <Intro />
+      <NavBar />
+      <Cursor />
+      <ScrollRail />
+      {SHOW_STYLE_LAB ? <StyleLab /> : null}
       {/* The smoother transforms #smooth-content, so anything that has to stay
           welded to the viewport (the loading screen above, and the fog curtain
           FeaturesSection portals to the body) must live outside it — a
@@ -123,56 +141,88 @@ export default function HomePage() {
               layers guard themselves individually too (see the try/catch in each
               renderer); this is the net under all of them, so the worst case is
               one chapter missing rather than a blank page. */}
-          <div inert={loading || undefined}>
-            <EffectBoundary label="HeroSection">
-              <HeroSection />
-            </EffectBoundary>
-            <EffectBoundary label="FeaturesSection">
-              <FeaturesSection />
-            </EffectBoundary>
-            <Suspense fallback={null}>
-              <EffectBoundary label="FeatureStory">
-                <FeatureStory />
+          <div>
+            <Slot>
+              <EffectBoundary label="HeroSection">
+                <HeroSection />
               </EffectBoundary>
-            </Suspense>
-            {/* Closing argument, and the page's second dark chapter. Placed
-                after the feature story so the reader meets the product first
-                and the "why" lands as the conclusion; it opens with its own
-                dusk band (see WhySection.css) which takes the light editorial
-                chapter back down to the hero's near-black. */}
-            <Suspense fallback={null}>
-              <EffectBoundary label="WhySection">
-                <WhySection />
+            </Slot>
+            <Slot>
+              <EffectBoundary label="FeaturesSection">
+                <FeaturesSection />
               </EffectBoundary>
-            </Suspense>
-            {/* The ask, and the far side of the Why chapter's closing dive. That
-                chapter ends by travelling through the light tunnel's vanishing
-                point into open space, and this one opens in the same space — same
-                shared sky component, same base tone, no run-out band between them.
-                The screen of ordinary scrolling in between (a pinned stage has to
-                unpin somewhere) is this section's approach: see the two triggers
-                in PricingSection.tsx.
+            </Slot>
+            <Slot>
+              <MarqueeRibbons />
+            </Slot>
+            <Slot>
+              <Suspense fallback={null}>
+                <EffectBoundary label="FeatureStory">
+                  <FeatureStory />
+                </EffectBoundary>
+              </Suspense>
+            </Slot>
+            <Slot>
+              <EffectBoundary label="ModesSection">
+                <ModesSection />
+              </EffectBoundary>
+              {/* Closing argument, and the page's second dark chapter. Placed
+                  after the feature story so the reader meets the product first
+                  and the "why" lands as the conclusion; it opens with its own
+                  dusk band (see WhySection.css) which takes the light editorial
+                  chapter back down to the hero's near-black. */}
+            </Slot>
+            <Slot>
+              <Suspense fallback={null}>
+                <EffectBoundary label="WhySection">
+                  <WhySection />
+                </EffectBoundary>
+              </Suspense>
+              {/* The ask, and the far side of the Why chapter's closing dive. That
+                  chapter ends by travelling through the light tunnel's vanishing
+                  point into open space, and this one opens in the same space — same
+                  shared sky component, same base tone, no run-out band between them.
+                  The screen of ordinary scrolling in between (a pinned stage has to
+                  unpin somewhere) is this section's approach: see the two triggers
+                  in PricingSection.tsx.
 
-                The only chapter on the page whose copy is not choreographed: the
-                price table is an ordinary grid, readable at every scroll position,
-                and what the scroll drives here is the background it is read
-                against. */}
-            <Suspense fallback={null}>
-              <EffectBoundary label="PricingSection">
-                <PricingSection />
-              </EffectBoundary>
-            </Suspense>
-            {/* Objections, then the sign-off. The FAQ continues the pricing
-                tail's flat #000106 and the footer steps below it to black, so
-                the page closes on a value change rather than a transition. */}
-            <Suspense fallback={null}>
-              <EffectBoundary label="FaqSection">
-                <FaqSection />
-              </EffectBoundary>
-              <EffectBoundary label="SiteFooter">
-                <SiteFooter />
-              </EffectBoundary>
-            </Suspense>
+                  The only chapter on the page whose copy is not choreographed: the
+                  price table is an ordinary grid, readable at every scroll position,
+                  and what the scroll drives here is the background it is read
+                  against. */}
+            </Slot>
+            <Slot>
+              <BotsSection />
+            </Slot>
+            <Slot>
+              <StatsSection />
+            </Slot>
+            <Slot>
+              <Suspense fallback={null}>
+                <EffectBoundary label="PricingSection">
+                  <PricingSection />
+                </EffectBoundary>
+              </Suspense>
+              {/* Objections, then the sign-off. The FAQ continues the pricing
+                  tail's flat #000106 and the footer steps below it to black, so
+                  the page closes on a value change rather than a transition. */}
+            </Slot>
+            <Slot>
+              <RoadmapSection />
+            </Slot>
+            <Slot>
+              <Suspense fallback={null}>
+                <EffectBoundary label="FaqSection">
+                  <FaqSection />
+                </EffectBoundary>
+              </Suspense>
+            </Slot>
+            <Slot>
+              <CoffeeSection />
+            </Slot>
+            <Slot>
+              <BigFooter />
+            </Slot>
           </div>
         </div>
       </div>
